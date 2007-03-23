@@ -17,6 +17,10 @@ TODO:
 local Gratuity = AceLibrary("Gratuity-2.0")
 local surface = AceLibrary("Surface-1.0")
 
+local frame = nil
+local enchants = nil
+local poisonData = nil
+
 -------------------------------------------------------------------------------
 -- Localization                                                              --
 -------------------------------------------------------------------------------
@@ -80,13 +84,23 @@ function mod:OnInitialize()
 				name = "Bar",
 				desc = "Bar options",
 				order = 5,
+				pass = true,
+				get = function(key)
+					return self.db.profile[key]
+				end,
+				set = function(key, value)
+					self.db.profile[key] = value
+					self:UpdateActiveBars()
+				end,
+				func = function() -- Only used by test.
+					self:StartBar("Main Hand", 30, "Interface\\Icons\\Ability_ThunderBolt", "lightgrey")
+					self:StartBar("Off Hand", 45, "Interface\\Icons\\Ability_ThunderBolt", "lightgrey")
+				end,
 				args = {
 					scale = {
 						type = "range",
 						name = "Scale",
 						desc = "Change bar scale",
-						set = function(v) self.db.profile.scale = v self:UpdateActiveBars() end,
-						get = function() return self.db.profile.scale end,
 						min = 0.5, max = 2, step = 0.1,
 						order = 1,
 					},
@@ -94,8 +108,6 @@ function mod:OnInitialize()
 						type = "range",
 						name = "Width",
 						desc = "Change bar width",
-						set = function(v) self.db.profile.width = v self:UpdateActiveBars() end,
-						get = function() return self.db.profile.width end,
 						min = 50, max = 300, step = 5,
 						order = 2,
 					},
@@ -103,8 +115,6 @@ function mod:OnInitialize()
 						type = "range",
 						name = "Height",
 						desc = "Change bar height",
-						set = function(v) self.db.profile.height = v self:UpdateActiveBars() end,
-						get = function() return self.db.profile.height end,
 						min = 10, max = 40, step = 2,
 						order = 3,
 					},
@@ -112,8 +122,6 @@ function mod:OnInitialize()
 						type = "text",
 						name = "Texture",
 						desc = "Change bar texture",
-						set = function(v) self.db.profile.texture = v self:UpdateActiveBars() end,
-						get = function() return self.db.profile.texture end,
 						validate = surface:List(),
 						order = 4,
 					},
@@ -121,8 +129,6 @@ function mod:OnInitialize()
 						type = "range",
 						name = "Font size",
 						desc = "Change bar text font size",
-						set = function(v) self.db.profile.fontsize = v self:UpdateActiveBars() end,
-						get = function() return self.db.profile.fontsize end,
 						min = 8, max = 20, step = 0.2,
 						order = 5,
 					},
@@ -130,22 +136,16 @@ function mod:OnInitialize()
 						type = "toggle",
 						name = "Grow bar group upwards",
 						desc = "Grows bar group upwards (i.e. new bars will be added at the top)",
-						get = function() return self.db.profile.growup end,
-						set = function(v) self.db.profile.growup = v end,
 						order = 8,
 					},		
 					test = {
 						type = "execute",
 						name = "Test",
 						desc = "Display test bars",
-						func = function() 
-							self:StartBar("Main Hand", 30, "Interface\\Icons\\Ability_ThunderBolt", "lightgrey") 
-							self:StartBar("Off Hand", 45, "Interface\\Icons\\Ability_ThunderBolt", "lightgrey")
-						end,
 						order = 7,
 					},
 				},
-			},		
+			},
 			toggle = {
 				type = "toggle",
 				name = "Toggle",
@@ -155,10 +155,8 @@ function mod:OnInitialize()
 			},
 		},
 	}
-	
-	self:CreateAnchor()
-	
-	self.enchants = { 
+
+	enchants = { 
 		mh = {
 			enchant = nil,
 			charges = 0,
@@ -168,7 +166,7 @@ function mod:OnInitialize()
 			charges = 0
 		} 
 	}
-	self.poisonData = {
+	poisonData = {
 		[L["Crippling Poison"]] = { 12, "Interface\\Icons\\Ability_PoisonSting" },
 		[L["Deadly Poison"]] = { 12, "Interface\\Icons\\Ability_Rogue_DualWeild" }, -- Did they actually misspell Wield?
 		[L["Mind-Numbing Poison"]] = { 14, "Interface\\Icons\\Spell_Nature_NullifyDisease" },
@@ -177,6 +175,8 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
+	self:CreateAnchor()
+
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
@@ -185,8 +185,8 @@ function mod:OnEnable()
 end
 
 function mod:OnDisable()
-	self.frame:Hide()
-	self.frame = nil
+	frame:Hide()
+	frame = nil
 end
 
 -------------------------------------------------------------------------------
@@ -196,20 +196,21 @@ end
 -- creates the statusbar anchor and registers candybar group
 -- Ripped from HotMan
 function mod:CreateAnchor()
-	self.frame = CreateFrame("Button", "TickToxinFrame", UIParent)
-	self.frame:SetHeight(16)
-	self.frame:SetWidth(200)
-	self.frame:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+	if frame then return end
+	frame = CreateFrame("Button", "TickToxinFrame", UIParent)
+	frame:SetHeight(16)
+	frame:SetWidth(200)
+	frame:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
 	                             tile = true, tileSize = 16,
 	                             insets = { left = 0, right = 0, top = 0, bottom = 0 }
 	                          })
-	self.frame:SetBackdropColor(0.3, 0.3, 0.3, 0.5)
-	self.frame:SetMovable(true)
-	self.frame:EnableMouse(true)
-	self.frame:RegisterForDrag("LeftButton")
-	self.frame:RegisterForClicks("RightButtonUp")
-	self.frame:SetScript("OnDragStart", function() this:StartMoving() end)
-	self.frame:SetScript("OnDragStop", function() 
+	frame:SetBackdropColor(0.3, 0.3, 0.3, 0.5)
+	frame:SetMovable(true)
+	frame:EnableMouse(true)
+	frame:RegisterForDrag("LeftButton")
+	frame:RegisterForClicks("RightButtonUp")
+	frame:SetScript("OnDragStart", function() this:StartMoving() end)
+	frame:SetScript("OnDragStop", function() 
 		this:StopMovingOrSizing()
 		local a,b,c,d,e = this:GetPoint()
 		if a == "TOPLEFT" and c == "TOPLEFT" then
@@ -218,31 +219,31 @@ function mod:CreateAnchor()
 		end
 	end)
 	
-	self.frame:Hide()
+	frame:Hide()
 	
-	self.frame.text = self.frame:CreateFontString("TickToxinFrameText", "OVERLAY")
-	self.frame.text:SetFont(GameFontHighlightSmall:GetFont())
-	self.frame.text:SetText("TickToxin")
-	self.frame.text:ClearAllPoints()
-	self.frame.text:SetAllPoints(self.frame)
+	frame.text = frame:CreateFontString("TickToxinFrameText", "OVERLAY")
+	frame.text:SetFont(GameFontHighlightSmall:GetFont())
+	frame.text:SetText("TickToxin")
+	frame.text:ClearAllPoints()
+	frame.text:SetAllPoints(frame)
 	
 	if not self.db.profile.x then
-		self.frame:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
+		frame:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
 	else
-		self.frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", self.db.profile.x, self.db.profile.y)
+		frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", self.db.profile.x, self.db.profile.y)
 	end
 	
 	self:RegisterCandyBarGroup("TickToxinBottom")
-	self:SetCandyBarGroupPoint("TickToxinBottom", "TOPLEFT", self.frame, "TOPLEFT", 0, -15)
+	self:SetCandyBarGroupPoint("TickToxinBottom", "TOPLEFT", frame, "TOPLEFT", 0, -15)
 	
 	self:RegisterCandyBarGroup("TickToxinTop")
-	self:SetCandyBarGroupPoint("TickToxinTop", "BOTTOMLEFT", self.frame, "BOTTOMLEFT", 0, 15)
+	self:SetCandyBarGroupPoint("TickToxinTop", "BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 15)
 	self:SetCandyBarGroupGrowth("TickToxinTop", true)
 end
 
 -- Ripped from HotMan
 function mod:StartBar(name, duration, icon, color, text)
-	name = string.gsub(name, " ", "")
+	name = name:gsub(" ", "")
 	if not text then
 		self:RegisterCandyBar(name, duration, name, icon, color)
 	else
@@ -289,23 +290,23 @@ function mod:UpdateEnchants()
 		
 		-- Our enchant is the same as before, but the charges are less. Start a tick!
 		-- BUG: On the first application our enchant won't be the same as before, because it was nil
-		if self.enchants.mh.enchant == mhEnchant and mhCharges < self.enchants.mh.charges then
+		if enchants.mh.enchant == mhEnchant and mhCharges < enchants.mh.charges then
 			self:ToxinTick(mhEnchant)
 		end
 		
-		self.enchants.mh.enchant = mhEnchant
-		self.enchants.mh.charges = mhCharges
+		enchants.mh.enchant = mhEnchant
+		enchants.mh.charges = mhCharges
 	end
 	
 	if ohHasEnchant then
 		ohEnchant = self:GetEnchantName(GetInventorySlotInfo("SecondaryHandSlot"))
 		
-		if self.enchants.oh.enchant == ohEnchant and ohCharges < self.enchants.oh.charges then
+		if enchants.oh.enchant == ohEnchant and ohCharges < enchants.oh.charges then
 			self:ToxinTick(ohEnchant)
 		end
 		
-		self.enchants.oh.enchant = ohEnchant
-		self.enchants.oh.charges = ohCharges
+		enchants.oh.enchant = ohEnchant
+		enchants.oh.charges = ohCharges
 	end
 end
 
@@ -316,7 +317,7 @@ function mod:GetEnchantName(id)
 		-- BUG: Won't work with Crippling Poison because it doesn't have charges. But I'm not smart enough to fix it with a single regex.
 		-- Then again, we're using charges to detect a new application of a poison, and because Crippling doesn't have charges,
 		-- it won't work either way!
-		local _, _, buffname = string.find(Gratuity:GetLine(i), "^(.+) %(%d+ [^%)]+%) %(%d+ [^%)]+%)$")
+		local buffname = select(3, Gratuity:GetLine(i):find("^(.+) %(%d+ [^%)]+%) %(%d+ [^%)]+%)$"))
 		if buffname then
 			return buffname
 		end
@@ -326,10 +327,10 @@ end
 function mod:ToxinTick(enchant)
 	if enchant == nil then return end
 	
-	enchant = string.gsub(enchant, " .I*V*I*$", "") -- Remove Roman numerals from the name
+	enchant = enchant:gsub(" .I*V*I*$", "") -- Remove Roman numerals from the name
 	
-	if self.poisonData[enchant] ~= nil then
-		local data = self.poisonData[enchant]
+	if poisonData[enchant] ~= nil then
+		local data = poisonData[enchant]
 		self:StartBar(enchant, data[1], data[2], "green")
 	end
 end

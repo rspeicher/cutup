@@ -8,8 +8,8 @@ Cutup.Options = {
 	args = {},
 }
 
-function Cutup:OnEnable()
-	self:RegisterChatCommand({"/cutup"}, self.Options)
+function Cutup:OnInitialize()
+	self:RegisterChatCommand({"/cutup"}, self.Options, "CUTUP")
 end
 
 function Cutup:OnDisable()
@@ -17,3 +17,4 @@ function Cutup:OnDisable()
 		self:ToggleModuleActive(module, false)
 	end
 end
+

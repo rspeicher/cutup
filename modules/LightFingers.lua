@@ -54,12 +54,18 @@ end
 -------------------------------------------------------------------------------
 -- Events                                                                    --
 -------------------------------------------------------------------------------
+do
+	local current = nil
+	local function restore()
+		SetAutoLootDefault(current)
+	end
 
-function mod:UNIT_SPELLCAST_SENT(p, spell, rank, target)
-	if spell == L["Pick Pocket"] then
-		local current = GetAutoLootDefault()
-		SetAutoLootDefault(1)
-		
-		self:ScheduleEvent(function() SetAutoLootDefault(current) end, 1)
+	function mod:UNIT_SPELLCAST_SENT(p, spell, rank, target)
+		if spell == L["Pick Pocket"] then
+			current = GetAutoLootDefault()
+			SetAutoLootDefault(1)
+			self:ScheduleEvent(restore, 1)
+		end
 	end
 end
+
