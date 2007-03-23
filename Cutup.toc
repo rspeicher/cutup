@@ -1,0 +1,35 @@
+## Interface: 20003
+
+## Title: Cutup |cff7fff7f -Ace2-|r
+## Notes: A framework for Rogue-specific modules.
+## Author: tsigo
+## X-Credits: tsigo
+## X-Website: http://www.wowace.com/wiki/Cutup
+## X-Category: Rogue
+
+## OptionalDeps: Ace2, PaintChipsLib, CandyBar, SurfaceLib
+## X-Embeds: Ace2, PaintChipsLib, CandyBar, SurfaceLib
+
+## SavedVariables: CutupDB
+
+libs\AceLibrary\AceLibrary.lua
+libs\AceOO-2.0\AceOO-2.0.lua
+libs\AceAddon-2.0\AceAddon-2.0.lua
+libs\AceConsole-2.0\AceConsole-2.0.lua
+libs\AceHook-2.1\AceHook-2.1
+libs\AceDB-2.0\AceDB-2.0.lua
+libs\AceEvent-2.0\AceEvent-2.0.lua
+libs\AceLocale-2.2\AceLocale-2.2.lua
+libs\AceModuleCore-2.0\AceModuleCore-2.0.lua
+
+libs\PaintChips-2.0\PaintChips-2.0.lua
+libs\CandyBar-2.0\CandyBar-2.0.lua
+libs\Surface-1.0\Surface-1.0.lua
+libs\Deformat-2.0\Deformat-2.0.lua
+libs\Gratuity-2.0\Gratuity-2.0.lua
+
+Cutup.lua
+modules\Charges.lua
+modules\LightFingers.lua
+modules\Spam.lua
+modules\TickToxin.lua
