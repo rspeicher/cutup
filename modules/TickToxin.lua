@@ -174,17 +174,14 @@ function mod:OnInitialize()
 		[L["Mind-Numbing Poison"]] = { 14, "Interface\\Icons\\Spell_Nature_NullifyDisease" },
 		[L["Wound Poison"]] = { 15, "Interface\\Icons\\INV_Misc_Herb_16" },
 	}
-	
-	self.textures = { }
-	for name, texture in pairs(surface:Iterate()) do
-		self.textures[name] = texture
-	end
 end
 
 function mod:OnEnable()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
+
+	self:RegisterEvent("Surface_SetGlobal", "UpdateActiveBars")
 end
 
 function mod:OnDisable()
@@ -252,7 +249,7 @@ function mod:StartBar(name, duration, icon, color, text)
 		self:RegisterCandyBar(name, duration, text, icon, color)
 	end
 	
-	self:SetCandyBarTexture(name, self.textures[self.db.profile.texture] or self.textures.default)
+	self:SetCandyBarTexture(name, surface:Fetch(self.db.profile.texture))
 	self:SetCandyBarWidth(name, self.db.profile.width)
 	self:SetCandyBarHeight(name, self.db.profile.height)
 	self:SetCandyBarFontSize(name, self.db.profile.fontsize)
