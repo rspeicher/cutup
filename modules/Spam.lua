@@ -1,3 +1,5 @@
+if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
+
 --[[
 Name: Cutup_Spam
 Revision: $Revision$
@@ -51,48 +53,43 @@ function mod:OnInitialize()
 				type = "group",
 				name = "Messages",
 				desc = "Messages to block",
+				pass = true,
+				get = function(key)
+					return self.db.profile.msg[key]
+				end,
+				set = function(key, value)
+					self.db.profile.msg[key] = value
+				end,
 				args = {
 					notready = {
 						type = "toggle",
 						name = L["Ability is not ready yet."],
 						desc = L["Ability is not ready yet."],
-						get = function() return self.db.profile.msg.notready end,
-						set = function(v) self.db.profile.msg.notready = v end,
 					},
 					energy = {
 						type = "toggle",
 						name = L["Not enough energy"],
 						desc = L["Not enough energy"],
-						get = function() return self.db.profile.msg.energy end,
-						set = function(v) self.db.profile.msg.energy = v end,
 					},
 					notarget = {
 						type = "toggle",
 						name = L["There is nothing to attack."],
 						desc = L["There is nothing to attack."],
-						get = function() return self.db.profile.msg.notarget end,
-						set = function(v) self.db.profile.msg.notarget = v end,
 					},
 					combo = {
 						type = "toggle",
 						name = L["That ability requires combo points"],
 						desc = L["That ability requires combo points"],
-						get = function() return self.db.profile.msg.combo end,
-						set = function(v) self.db.profile.msg.combo = v end,
 					},
 					dead = {
 						type = "toggle",
 						name = L["Your target is dead."],
 						desc = L["Your target is dead."],
-						get = function() return self.db.profile.msg.dead end,
-						set = function(v) self.db.profile.msg.dead = v end,
 					},
 					inprogress = {
 						type = "toggle",
 						name = L["Another action is in progress"],
 						desc = L["Another action is in progress"],
-						get = function() return self.db.profile.msg.inprogress end,
-						set = function(v) self.db.profile.msg.inprogress = v end,
 					},
 				},
 			},
@@ -121,9 +118,9 @@ end
 
 function mod:UIErrorsFrame_OnEvent( event, msg, ... )
 	if self.db.profile.on then
-		
-		for k, v in pairs(Cutup.Options.args.Spam.args.Messages.args) do
-			if v.get() and msg == v.desc then
+		local opt = Cutup.Options.args.Spam.args.Messages
+		for k, v in pairs(opt.args) do
+			if opt.get(k) and msg == v.desc then
 				return
 			end
 		end
