@@ -2,7 +2,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 
 Cutup = AceLibrary("AceAddon-2.0"):new("AceConsole-2.0", "AceDB-2.0", "AceEvent-2.0", "AceHook-2.1", "AceModuleCore-2.0")
 Cutup:RegisterDB("CutupDB")
-Cutup:SetModuleMixins("AceEvent-2.0", "AceHook-2.1")
+Cutup:SetModuleMixins("AceConsole-2.0", "AceEvent-2.0", "AceHook-2.1")
 Cutup.Options = {
 	type = "group",
 	name = "Cutup",
