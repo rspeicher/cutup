@@ -8,8 +8,8 @@
 ## X-Category: Rogue
 ## X-AceForum: 5366
 
-## OptionalDeps: Ace2, PaintChipsLib, CandyBar, SurfaceLib
-## X-Embeds: Ace2, PaintChipsLib, CandyBar, SurfaceLib
+## OptionalDeps: Ace2, PaintChipsLib, CandyBar, SurfaceLib, Parser-3.0
+## X-Embeds: Ace2, PaintChipsLib, CandyBar, SurfaceLib, Parser-3.0
 
 ## SavedVariables: CutupDB
 
@@ -22,12 +22,14 @@ libs\AceDB-2.0\AceDB-2.0.lua
 libs\AceEvent-2.0\AceEvent-2.0.lua
 libs\AceLocale-2.2\AceLocale-2.2.lua
 libs\AceModuleCore-2.0\AceModuleCore-2.0.lua
+libs\AceDebug-2.0\AceDebug-2.0.lua
 
 libs\PaintChips-2.0\PaintChips-2.0.lua
 libs\CandyBar-2.0\CandyBar-2.0.lua
 libs\Surface-1.0\Surface-1.0.lua
 libs\Deformat-2.0\Deformat-2.0.lua
 libs\Gratuity-2.0\Gratuity-2.0.lua
+libs\Parser-3.0\Parser-3.0.lua
 
 Cutup.lua
 modules\Charges.lua

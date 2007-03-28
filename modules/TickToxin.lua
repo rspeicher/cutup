@@ -13,7 +13,6 @@ TODO:
 	- Bars don't disappear when your target dies. Should they? Can they?
 	- Bars don't account for different targets. Rogues don't often poison multiple targets anyway.
 	- Deadly Poison bar will continue to tick even if your DP was removed via Envenom. I doubt there's an easy way around this.
-	- Bar starts when a proc is detected, not when it *lands*. This causes potential issues with resisted applications.
 ]]
 
 local Gratuity = AceLibrary("Gratuity-2.0")
@@ -22,6 +21,19 @@ local surface = AceLibrary("Surface-1.0")
 local frame = nil
 local enchants = nil
 local poisonData = nil
+local lastMiss = 0
+
+-- Parser event for poisons that don't land
+local event = {
+	eventType = "Miss",
+	sourceID = "player",
+	missType_in = {
+		Reflect = true,
+		Resist = true,
+		Evade = true,
+		Immune = true,
+	},
+}
 
 -------------------------------------------------------------------------------
 -- Localization                                                              --
@@ -30,6 +42,7 @@ local poisonData = nil
 local L = AceLibrary("AceLocale-2.2"):new("Cutup_TickToxin")
 
 L:RegisterTranslations("enUS", function() return {
+	["Poison"] = true,
 	["Crippling Poison"] = true,
 	["Deadly Poison"] = true,
 	["Mind-Numbing Poison"] = true,
@@ -40,7 +53,7 @@ L:RegisterTranslations("enUS", function() return {
 -- Initialization                                                            --
 -------------------------------------------------------------------------------
 
-local mod = Cutup:NewModule("TickToxin", "CandyBar-2.0")
+local mod = Cutup:NewModule("TickToxin", "CandyBar-2.0", "Parser-3.0")
 
 function mod:OnInitialize()
 	self.db = Cutup:AcquireDBNamespace("TickToxin")
@@ -117,7 +130,7 @@ function mod:OnInitialize()
 						type = "range",
 						name = "Height",
 						desc = "Change bar height",
-						min = 10, max = 40, step = 2,
+						min = 10, max = 40, step = 1,
 						order = 3,
 					},
 					texture = {
@@ -138,13 +151,13 @@ function mod:OnInitialize()
 						type = "toggle",
 						name = "Grow bar group upwards",
 						desc = "Grows bar group upwards (i.e. new bars will be added at the top)",
-						order = 8,
+						order = 7,
 					},		
 					test = {
 						type = "execute",
 						name = "Test",
 						desc = "Display test bars",
-						order = 7,
+						order = 8,
 					},
 				},
 			},
@@ -182,6 +195,8 @@ function mod:OnEnable()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
+	
+	self:RegisterParserEvent(event, "OnParserEvent")
 
 	self:RegisterEvent("Surface_SetGlobal", "UpdateActiveBars")
 end
@@ -291,11 +306,10 @@ function mod:UpdateEnchants()
 		mhEnchant = self:GetEnchantName(GetInventorySlotInfo("MainHandSlot"))
 		
 		-- Our enchant is the same as before, but the charges are less. Start a tick!
-		-- BUG: On the first application our enchant won't be the same as before, because it was nil
 		if enchants.mh.enchant == mhEnchant and mhCharges < enchants.mh.charges then
 			self:ToxinTick(mhEnchant)
 		end
-		
+
 		enchants.mh.enchant = mhEnchant
 		enchants.mh.charges = mhCharges
 	end
@@ -306,7 +320,7 @@ function mod:UpdateEnchants()
 		if enchants.oh.enchant == ohEnchant and ohCharges < enchants.oh.charges then
 			self:ToxinTick(ohEnchant)
 		end
-		
+
 		enchants.oh.enchant = ohEnchant
 		enchants.oh.charges = ohCharges
 	end
@@ -324,17 +338,29 @@ function mod:GetEnchantName(id)
 			return buffname
 		end
 	end
+	
+	return nil
 end
 
 function mod:ToxinTick(enchant)
 	if enchant == nil then return end
 	
-	enchant = enchant:gsub(" .I*V*I*$", "") -- Remove Roman numerals from the name
+	enchant = self:RemoveNumerals(enchant)
 	
 	if poisonData[enchant] ~= nil then
+		-- Got a Poison miss less than half a second ago, ignore this proc
+		-- 0.4xx seconds seemed to be the most amount of time between the two
+		if ( GetTime() - lastMiss < 0.5 ) then return end
+		
 		local data = poisonData[enchant]
 		self:StartBar(enchant, data[1], data[2], "green")
 	end
+end
+
+function mod:RemoveNumerals(enchant)
+	if enchant == nil then return end
+	
+	return enchant:gsub(" .I*V*I*$", "")
 end
 
 -------------------------------------------------------------------------------
@@ -343,6 +369,7 @@ end
 
 function mod:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
+	self:UpdateEnchants()
 end
 
 function mod:PLAYER_LEAVING_WORLD()
@@ -350,8 +377,19 @@ function mod:PLAYER_LEAVING_WORLD()
 	self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
 end
 
-function mod:UNIT_INVENTORY_CHANGED( arg1 )
+function mod:UNIT_INVENTORY_CHANGED(arg1)
 	if arg1 == "player" then
 		self:UpdateEnchants()
 	end
+end
+
+function mod:OnParserEvent(event)
+	assert(event.sourceID == "player", "We don't care about other players' poison procs.")
+	
+	-- Should do this with abilityName_match in Parser but it threw an error?
+	if not event.abilityName:find("^.*" .. L["Poison"] .. ".*$") then return end
+	
+	lastMiss = GetTime()
+	
+	self:Debug("Poison Miss", event.abilityName, event.missType)
 end
