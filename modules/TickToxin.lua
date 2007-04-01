@@ -387,7 +387,7 @@ function mod:OnParserEvent(event)
 	assert(event.sourceID == "player", "We don't care about other players' poison procs.")
 	
 	-- Should do this with abilityName_match in Parser but it threw an error?
-	if not event.abilityName:find("^.*" .. L["Poison"] .. ".*$") then return end
+	if not event.abilityName or not event.abilityName:find("^.*" .. L["Poison"] .. ".*$") then return end
 	
 	lastMiss = GetTime()
 	
