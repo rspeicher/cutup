@@ -16,24 +16,10 @@ TODO:
 ]]
 
 local Gratuity = AceLibrary("Gratuity-2.0")
-local surface = AceLibrary("Surface-1.0")
+local SM = AceLibrary("SharedMedia-1.0")
 
 local frame = nil
-local enchants = nil
-local poisonData = nil
-local lastMiss = 0
-
--- Parser event for poisons that don't land
-local event = {
-	eventType = "Miss",
-	sourceID = "player",
-	missType_in = {
-		Reflect = true,
-		Resist = true,
-		Evade = true,
-		Immune = true,
-	},
-}
+local activebars = {}
 
 -------------------------------------------------------------------------------
 -- Localization                                                              --
@@ -43,17 +29,13 @@ local L = AceLibrary("AceLocale-2.2"):new("Cutup_TickToxin")
 
 L:RegisterTranslations("enUS", function() return {
 	["Poison"] = true,
-	["Crippling Poison"] = true,
-	["Deadly Poison"] = true,
-	["Mind-Numbing Poison"] = true,
-	["Wound Poison"] = true,
 } end)
 
 -------------------------------------------------------------------------------
 -- Initialization                                                            --
 -------------------------------------------------------------------------------
 
-local mod = Cutup:NewModule("TickToxin", "CandyBar-2.0", "Parser-3.0")
+local mod = Cutup:NewModule("TickToxin", "CandyBar-2.0")
 
 function mod:OnInitialize()
 	self.db = Cutup:AcquireDBNamespace("TickToxin")
@@ -74,13 +56,6 @@ function mod:OnInitialize()
 		name = "TickToxin",
 		desc = "Poison application timer.",
 		args = {
-			--[[
-			header = {
-				type = "header",
-				name = "TickToxin",
-				order = 1,
-			},
-			]]
 			anchor = {
 				type = "execute",
 				name = "Show/Hide Anchor",
@@ -137,7 +112,7 @@ function mod:OnInitialize()
 						type = "text",
 						name = "Texture",
 						desc = "Change bar texture",
-						validate = surface:List(),
+						validate = SM:List("statusbar"),
 						order = 4,
 					},
 					fontsize = {
@@ -170,35 +145,12 @@ function mod:OnInitialize()
 			},
 		},
 	}
-
-	enchants = { 
-		mh = {
-			enchant = nil,
-			charges = 0,
-		},
-		oh = {
-			enchant = nil,
-			charges = 0
-		} 
-	}
-	poisonData = {
-		[L["Crippling Poison"]] = { 12, "Interface\\Icons\\Ability_PoisonSting" },
-		[L["Deadly Poison"]] = { 12, "Interface\\Icons\\Ability_Rogue_DualWeild" }, -- Did they actually misspell Wield?
-		[L["Mind-Numbing Poison"]] = { 14, "Interface\\Icons\\Spell_Nature_NullifyDisease" },
-		[L["Wound Poison"]] = { 15, "Interface\\Icons\\INV_Misc_Herb_16" },
-	}
 end
 
 function mod:OnEnable()
 	self:CreateAnchor()
 
-	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self:RegisterEvent("PLAYER_LEAVING_WORLD")
-	
-	self:RegisterParserEvent(event, "OnParserEvent")
-
-	self:RegisterEvent("Surface_SetGlobal", "UpdateActiveBars")
+	self:RegisterBucketEvent("UNIT_AURA", 0.2)
 end
 
 function mod:OnDisable()
@@ -207,7 +159,7 @@ function mod:OnDisable()
 end
 
 -------------------------------------------------------------------------------
--- Addon Methods                                                             --
+-- Bar/Anchor Methods                                                        --
 -------------------------------------------------------------------------------
 
 -- creates the statusbar anchor and registers candybar group
@@ -260,14 +212,11 @@ end
 
 -- Ripped from HotMan
 function mod:StartBar(name, duration, icon, color, text)
-	name = name:gsub(" ", "")
-	if not text then
-		self:RegisterCandyBar(name, duration, name, icon, color)
-	else
-		self:RegisterCandyBar(name, duration, text, icon, color)
-	end
+	if not text then text = name end
+	self:RegisterCandyBar(name, duration, text, icon, color)
+	self:StoreActiveBar(name)
 	
-	self:SetCandyBarTexture(name, surface:Fetch(self.db.profile.texture))
+	self:SetCandyBarTexture(name, SM:Fetch("statusbar", self.db.profile.texture))
 	self:SetCandyBarWidth(name, self.db.profile.width)
 	self:SetCandyBarHeight(name, self.db.profile.height)
 	self:SetCandyBarFontSize(name, self.db.profile.fontsize)
@@ -284,10 +233,9 @@ function mod:StartBar(name, duration, icon, color, text)
 end
 
 function mod:UpdateActiveBars()
-	--[[
-	for i=1, #self.activebars, 1 do
-		local value = self.activebars[i]
-		self:SetCandyBarTexture(value, self.textures[self.db.profile.texture] or self.textures.default)
+	for i=1, #activebars do
+		local value = activebars[i]
+		self:SetCandyBarTexture(value, SM:Fetch("statusbar", self.db.profile.texture))
 		self:SetCandyBarWidth(value, self.db.profile.width)
 		self:SetCandyBarHeight(value, self.db.profile.height)
 		self:SetCandyBarFontSize(value, self.db.profile.fontsize)
@@ -295,65 +243,50 @@ function mod:UpdateActiveBars()
 		self:UpdateCandyBarGroup("TickToxinBottom")
 		self:UpdateCandyBarGroup("TickToxinTop")
 	end
-	]]
 end
 
-function mod:UpdateEnchants()
-	local mhHasEnchant, _, mhCharges, ohHasEnchant, _, ohCharges = GetWeaponEnchantInfo()
-	local mhEnchant, ohEnchant = nil, nil
+function mod:StoreActiveBar(barName)
+	for i=1, #activebars do
+		if activebars[i] == barName then
+			return
+		end
+	end
+
+	table.insert(activebars, barName)
+end
+
+-------------------------------------------------------------------------------
+-- Addon Methods                                                             --
+-------------------------------------------------------------------------------
+
+function mod:UpdateTargetAuras()
+	local name, rank, icon, count, debuffType, duration, timeLeft
+	local text
 	
-	if mhHasEnchant then
-		mhEnchant = self:GetEnchantName(GetInventorySlotInfo("MainHandSlot"))
+	for i=1, MAX_TARGET_DEBUFFS do
+		name, rank, icon, count, debuffType, duration, timeLeft = UnitDebuff("target", i)
 		
-		-- Our enchant is the same as before, but the charges are less. Start a tick!
-		if enchants.mh.enchant == mhEnchant and mhCharges < enchants.mh.charges then
-			self:ToxinTick(mhEnchant)
+		if timeLeft and debuffType == "Poison" and name:find("^.*" .. L["Poison"] .. ".*$") then
+			text = ((count ~= 0) and string.format("%s (%s)", name, count) or name)
+			self:ToxinTick(name, icon, duration, timeLeft, text)
 		end
-
-		enchants.mh.enchant = mhEnchant
-		enchants.mh.charges = mhCharges
-	end
-	
-	if ohHasEnchant then
-		ohEnchant = self:GetEnchantName(GetInventorySlotInfo("SecondaryHandSlot"))
-		
-		if enchants.oh.enchant == ohEnchant and ohCharges < enchants.oh.charges then
-			self:ToxinTick(ohEnchant)
-		end
-
-		enchants.oh.enchant = ohEnchant
-		enchants.oh.charges = ohCharges
 	end
 end
 
--- Inspired by PoisonFu
-function mod:GetEnchantName(id)
-	Gratuity:SetInventoryItem("player", id)
-	for i=1, Gratuity:NumLines() do
-		-- BUG: Won't work with Crippling Poison because it doesn't have charges. But I'm not smart enough to fix it with a single regex.
-		-- Then again, we're using charges to detect a new application of a poison, and because Crippling doesn't have charges,
-		-- it won't work either way!
-		local buffname = select(3, Gratuity:GetLine(i):find("^(.+) %(%d+ [^%)]+%) %(%d+ [^%)]+%)$"))
-		if buffname then
-			return buffname
-		end
-	end
-	
-	return nil
-end
-
-function mod:ToxinTick(enchant)
+function mod:ToxinTick(enchant, icon, duration, timeLeft, text)
 	if enchant == nil then return end
-	
 	enchant = self:RemoveNumerals(enchant)
 	
-	if poisonData[enchant] ~= nil then
-		-- Got a Poison miss less than half a second ago, ignore this proc
-		-- 0.4xx seconds seemed to be the most amount of time between the two
-		if ( GetTime() - lastMiss < 0.5 ) then return end
-		
-		local data = poisonData[enchant]
-		self:StartBar(enchant, data[1], data[2], "green")
+	local barName = enchant:gsub(" ", "")
+	local barDuration = 0
+	local barReg, barTime, barElapsed, _ = self:CandyBarStatus(barName)
+	
+	if not barReg then
+		self:StartBar(barName, duration, icon, "green", text)
+	else
+		self:SetCandyBarTime(barName, duration)
+		self:SetCandyBarTimeLeft(barName, timeLeft)
+		self:SetCandyBarText(barName, text)
 	end
 end
 
@@ -367,29 +300,8 @@ end
 -- Events                                                                    --
 -------------------------------------------------------------------------------
 
-function mod:PLAYER_ENTERING_WORLD()
-	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
-	self:UpdateEnchants()
-end
-
-function mod:PLAYER_LEAVING_WORLD()
-	-- Does this do anything? Dunno!
-	self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
-end
-
-function mod:UNIT_INVENTORY_CHANGED(arg1)
-	if arg1 == "player" then
-		self:UpdateEnchants()
+function mod:UNIT_AURA(units)
+	for unit in pairs(units) do
+		if unit == "target" then self:UpdateTargetAuras() end
 	end
-end
-
-function mod:OnParserEvent(event)
-	assert(event.sourceID == "player", "We don't care about other players' poison procs.")
-	
-	-- Should do this with abilityName_match in Parser but it threw an error?
-	if not event.abilityName or not event.abilityName:find("^.*" .. L["Poison"] .. ".*$") then return end
-	
-	lastMiss = GetTime()
-	
-	self:Debug("Poison Miss", event.abilityName, event.missType)
 end

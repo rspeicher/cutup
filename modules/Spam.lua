@@ -15,12 +15,10 @@ Description: A module for Cutup that blocks spammed Rogue-specific messages in U
 local L = AceLibrary("AceLocale-2.2"):new("Cutup_Spam")
 
 L:RegisterTranslations("enUS", function() return {
-	["Ability is not ready yet."]          = true,
-	["Not enough energy"]                  = true,
-	["There is nothing to attack."]        = true,
-	["That ability requires combo points"] = true,
-	["Your target is dead."]               = true,
-	["Another action is in progress"]      = true,
+	["Spam"] = true,
+	["Block spammed Rogue-specific messages in UIErrorsFrame."] = true,
+	["Messages"] = true,
+	["Messages to block"] = true,
 } end)
 
 -------------------------------------------------------------------------------
@@ -46,13 +44,13 @@ function mod:OnInitialize()
 	
 	Cutup.Options.args.Spam = {
 		type = "group",
-		name = "Spam",
-		desc = "Block spammed Rogue-specific messages in UIErrorsFrame.",
+		name = L["Spam"],
+		desc = L["Block spammed Rogue-specific messages in UIErrorsFrame."],
 		args = {
 			Messages = {
 				type = "group",
-				name = "Messages",
-				desc = "Messages to block",
+				name = L["Messages"],
+				desc = L["Messages to block"],
 				pass = true,
 				get = function(key)
 					return self.db.profile.msg[key]
@@ -63,33 +61,33 @@ function mod:OnInitialize()
 				args = {
 					notready = {
 						type = "toggle",
-						name = L["Ability is not ready yet."],
-						desc = L["Ability is not ready yet."],
+						name = ERR_ABILITY_COOLDOWN,
+						desc = ERR_ABILITY_COOLDOWN,
 					},
 					energy = {
 						type = "toggle",
-						name = L["Not enough energy"],
-						desc = L["Not enough energy"],
+						name = ERR_OUT_OF_ENERGY,
+						desc = ERR_OUT_OF_ENERGY,
 					},
 					notarget = {
 						type = "toggle",
-						name = L["There is nothing to attack."],
-						desc = L["There is nothing to attack."],
+						name = ERR_NO_ATTACK_TARGET,
+						desc = ERR_NO_ATTACK_TARGET,
 					},
 					combo = {
 						type = "toggle",
-						name = L["That ability requires combo points"],
-						desc = L["That ability requires combo points"],
+						name = SPELL_FAILED_NO_COMBO_POINTS,
+						desc = SPELL_FAILED_NO_COMBO_POINTS,
 					},
 					dead = {
 						type = "toggle",
-						name = L["Your target is dead."],
-						desc = L["Your target is dead."],
+						name = SPELL_FAILED_TARGETS_DEAD,
+						desc = SPELL_FAILED_TARGETS_DEAD,
 					},
 					inprogress = {
 						type = "toggle",
-						name = L["Another action is in progress"],
-						desc = L["Another action is in progress"],
+						name = SPELL_FAILED_SPELL_IN_PROGRESS,
+						desc = SPELL_FAILED_SPELL_IN_PROGRESS,
 					},
 				},
 			},
@@ -116,7 +114,7 @@ end
 -- Addon Methods                                                             --
 -------------------------------------------------------------------------------
 
-function mod:UIErrorsFrame_OnEvent( event, msg, ... )
+function mod:UIErrorsFrame_OnEvent(event, msg, ...)
 	if self.db.profile.on then
 		local opt = Cutup.Options.args.Spam.args.Messages
 		for k, v in pairs(opt.args) do
