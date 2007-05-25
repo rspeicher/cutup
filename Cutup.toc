@@ -1,7 +1,7 @@
 ## Interface: 20100
 
 ## Title: Cutup |cff7fff7f -Ace2-|r
-## Notes: A framework for Rogue-specific modules.
+## Notes: A collection of Rogue modules.
 ## Author: tsigo
 ## X-Credits: tsigo, Rabbit, Kergoth
 ## X-Website: http://www.wowace.com/wiki/Cutup
@@ -28,6 +28,9 @@ libs\CandyBar-2.0\CandyBar-2.0.lua
 libs\SharedMedia-1.0\SharedMedia-1.0.lua
 libs\Deformat-2.0\Deformat-2.0.lua
 libs\Gratuity-2.0\Gratuity-2.0.lua
+libs\Waterfall-1.0\Waterfall-1.0.lua
+
+locale\Cutup-enUS.lua
 
 Cutup.lua
 modules\LightFingers.lua

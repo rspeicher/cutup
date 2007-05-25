@@ -7,50 +7,28 @@ Author(s): tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that switches to Auto Loot when Pick Pocket is cast.
 ]]
 
--------------------------------------------------------------------------------
--- Localization                                                              --
--------------------------------------------------------------------------------
+local Cutup = Cutup
+if Cutup:HasModule('LightFingers') then
+	return
+end
 
-local L = AceLibrary("AceLocale-2.2"):new("Cutup_LightFingers")
+local L = AceLibrary("AceLocale-2.2"):new("Cutup")
 
-L:RegisterTranslations("enUS", function() return {
-	["Pick Pocket"] = true,
-} end)
+local CutupLightFingers = Cutup:NewModule('LightFingers')
+local self = CutupLightFingers
 
 -------------------------------------------------------------------------------
 -- Initialization                                                            --
 -------------------------------------------------------------------------------
 
-local mod = Cutup:NewModule("LightFingers")
-
-function mod:OnInitialize()
-	self.db = Cutup:AcquireDBNamespace("LightFingers")
-	
-	Cutup:RegisterDefaults("LightFingers", "profile", {
-		on = true,
-	})
-	
-	Cutup.Options.args.LightFingers = {
-		type = "group",
-		name = "LightFingers",
-		desc = "Auto Pick Pocket.",
-		args = {
-			toggle = {
-				type = "toggle",
-				name = "Toggle",
-				desc = "Toggle the module on and off.",
-				get = function() return self.db.profile.on end,
-				set = function(v) self.db.profile.on = Cutup:ToggleModuleActive("LightFingers") end,
-			},
-		},
-	}
+function CutupLightFingers:OnInitialize()
 end
 
-function mod:OnEnable()
+function CutupLightFingers:OnEnable()
 	self:RegisterEvent("UNIT_SPELLCAST_SENT")
 end
 
-function mod:OnDisable()
+function CutupLightFingers:OnDisable()
 end
 
 -------------------------------------------------------------------------------
@@ -62,7 +40,7 @@ do
 		SetAutoLootDefault(current)
 	end
 
-	function mod:UNIT_SPELLCAST_SENT(p, spell, rank, target)
+	function CutupLightFingers:UNIT_SPELLCAST_SENT(p, spell, rank, target)
 		if spell == L["Pick Pocket"] then
 			current = GetAutoLootDefault()
 			SetAutoLootDefault(1)
@@ -71,3 +49,24 @@ do
 	end
 end
 
+do
+	Cutup.options.args.LightFingers = {
+		type = 'group',
+		name = L["LightFingers"],
+		desc = L["Automatic Pick Pocket"],
+		args = {
+			toggle = {
+				type = 'toggle',
+				name = L["Enable"],
+				desc = L["Enable"],
+				get = function()
+					return Cutup:IsModuleActive('LightFingers')
+				end,
+				set = function(v)
+					Cutup:ToggleModuleActive('LightFingers', v)
+				end,
+				order = 100,
+			},
+		},
+	}
+end
