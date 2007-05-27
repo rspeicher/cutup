@@ -297,8 +297,8 @@ do
 			
 			fontsize = {
 				type = 'range',
-				name = L["Font size"],
-				desc = L["Font size"],
+				name = L["Text size"],
+				desc = L["Text size"],
 				get = get,
 				set = set,
 				passValue = 'fontsize',
@@ -324,7 +324,7 @@ do
 			growup = {
 				type = 'toggle',
 				name = L["Grow up"],
-				desc = L["Add new bars on top of existing bars rather than below."],
+				desc = L["Add new bars above the anchor rather than below."],
 				get = get,
 				set = set,
 				passValue = 'growup',

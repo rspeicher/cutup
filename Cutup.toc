@@ -8,7 +8,7 @@
 ## X-Category: Rogue
 ## X-AceForum: 5366
 
-## X-Embeds: Ace2, PaintChipsLib, CandyBar, SurfaceLib
+## X-Embeds: Ace2, PaintChipsLib, CandyBar, SharedMediaLib
 
 ## SavedVariables: CutupDB
 
@@ -30,9 +30,12 @@ libs\Deformat-2.0\Deformat-2.0.lua
 libs\Gratuity-2.0\Gratuity-2.0.lua
 libs\Waterfall-1.0\Waterfall-1.0.lua
 
+libs\Babble-Spell-2.2\Babble-Spell-2.2.lua
+
 locale\Cutup-enUS.lua
 
 Cutup.lua
+modules\Julienne.lua
 modules\LightFingers.lua
 modules\Spam.lua
 modules\TickToxin.lua

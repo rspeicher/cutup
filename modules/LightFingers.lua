@@ -13,6 +13,7 @@ if Cutup:HasModule('LightFingers') then
 end
 
 local L = AceLibrary("AceLocale-2.2"):new("Cutup")
+local BS = AceLibrary("Babble-Spell-2.2")
 
 local CutupLightFingers = Cutup:NewModule('LightFingers')
 local self = CutupLightFingers
@@ -41,7 +42,7 @@ do
 	end
 
 	function CutupLightFingers:UNIT_SPELLCAST_SENT(p, spell, rank, target)
-		if spell == L["Pick Pocket"] then
+		if spell == BS["Pick Pocket"] then
 			current = GetAutoLootDefault()
 			SetAutoLootDefault(1)
 			self:ScheduleEvent(restore, 1)
