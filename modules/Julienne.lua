@@ -29,8 +29,8 @@ local GetTime = GetTime
 
 -- Settings/infos
 local maxTime, combos = 0, 0
-local improvedRank, improved = 0, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
-local netherbladeBonus = false -- True if we have the two-piece Netherblade set bonus
+local improvedRank, improved = nil, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
+local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
 
 local function OnUpdate()
 	if self.running then
@@ -47,7 +47,11 @@ local function OnUpdate()
 		else
 			local perc = remainingTime / maxTime
 			sndBar:SetValue(perc)
-			sndTimeText:SetText(("%d"):format(remainingTime))
+			if remainingTime < 1 then
+				sndTimeText:SetText('')
+			else
+				sndTimeText:SetText(("%d"):format(remainingTime))
+			end
 		end
 	else
 		if sndParent:IsVisible() then
@@ -97,7 +101,6 @@ function CutupJulienne:OnEnable()
 	self:RegisterEvent("PLAYER_COMBO_POINTS")
 	
 	-- Netherblade bonus inventory scanning
-	self:RegisterEvent("PLAYER_LOGIN")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
@@ -333,6 +336,13 @@ end
 function CutupJulienne:CurrentDuration(combos)
 	if not combos or combos == 0 then return 0 end
 	
+	if improvedRank == nil then
+		self:ScanTalent()
+	end
+	if netherbladeBonus == nil then
+		self:ScanNetherblade()
+	end
+	
 	local value = 0
 	local bonus = ((netherbladeBonus) and 3 or 0)
 	
@@ -354,11 +364,6 @@ end
 -- Events
 -- ---------------------
 
-function CutupJulienne:PLAYER_LOGIN()
-	-- Could store these values, but they're trivial to scan, no?
-	self:ScanNetherblade()
-	self:ScanTalent()
-end
 function CutupJulienne:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
 end
