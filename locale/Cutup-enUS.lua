@@ -18,8 +18,10 @@ L:RegisterTranslations("enUS", function() return {
 	["Alpha"] = true,
 	["Text size"] = true,
 	["Texture"] = true,
+	["Border"] = true,
 	
 		-- Module: Julienne
+		["Slice and Dice timer"] = true,
 		["Lock"] = true,
 		["Toggle bar lock"] = true,
 		["Background color"] = true,

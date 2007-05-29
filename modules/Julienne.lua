@@ -79,6 +79,7 @@ function CutupJulienne:OnInitialize()
 		scale   = 1,
 		texture = 'Cilo',
 		
+		border    = 'None',
 		backColor = { 0, 0, 0, 1 },
 		mainColor = { 0.38, 0.38, 1.0, 0.8 },
 		
@@ -145,6 +146,7 @@ end
 function CutupJulienne:ApplySettings()
 	if sndParent then
 		local db = db.profile
+		local back = {}
 		
 		-- sndParent, to which all our stuff is anchored
 		sndParent:ClearAllPoints()
@@ -152,12 +154,31 @@ function CutupJulienne:ApplySettings()
 			db.x = (UIParent:GetWidth() / 2 - (db.width * db.scale) / 2) / db.scale
 		end
 		sndParent:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT', db.x, db.y)
-		sndParent:SetWidth(db.width)
-		sndParent:SetHeight(db.height)
+		
+		if db.border == "None" then
+			sndParent:SetWidth(db.width)
+			sndParent:SetHeight(db.height)
+			
+			back.bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
+			back.tile = true
+			back.tileSize = 16
+			back.insets = { top = 0, right = 0, bottom = 0, left = 0 }
+		else
+			sndParent:SetWidth(db.width + 9)
+			sndParent:SetHeight(db.height + 10)
+			
+			back.bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
+			back.tile = true
+			back.tileSize = 16
+			back.edgeFile = SM:Fetch('border', db.border)
+			back.edgeSize = 16
+			back.insets = { top = 4, right = 4, bottom = 4, left = 4 }
+		end
+		sndParent:SetBackdrop(back)
+		sndParent:SetBackdropColor(unpack(db.backColor))
+		
 		sndParent:SetAlpha(db.alpha)
 		sndParent:SetScale(db.scale)
-		sndParent:SetBackdrop({bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16})
-		sndParent:SetBackdropColor(unpack(db.backColor))
 		self:CheckVisibility(true)
 		
 		-- sndBar, the actual Slice and Dice timer
@@ -227,7 +248,7 @@ end
 
 -- Checks whether or not to show our parent frame based on various conditions
 -- Args: perform - true to call Hide or Show on the frame based on results
--- returns true of the frame should be shown
+-- returns true if the frame should be shown
 function CutupJulienne:CheckVisibility(perform)
 	local visible = false
 	
@@ -425,7 +446,7 @@ do
 	Cutup.options.args.Julienne = {
 		type = 'group',
 		name = L["Julienne"],
-		desc = L["Julienne"],
+		desc = L["Slice and Dice timer"],
 		args = {
 			toggle = {
 				type = 'toggle',
@@ -522,13 +543,21 @@ do
 				order = 300,
 			},
 			
+			border = {
+				type = 'text',
+				name = L["Border"],
+				desc = L["Border"],
+				get = get, set = set, passValue = 'border',
+				validate = SM:List('border'),
+				order = 301,
+			},
 			backColor = {
 				type = 'color',
 				name = L["Background color"],
 				desc = L["Background color"],
 				get = getcolor, set = setcolor, passValue = 'backColor',
 				hasAlpha = true,
-				order = 301,
+				order = 302,
 			},
 			mainColor = {
 				type = 'color',
@@ -536,7 +565,7 @@ do
 				desc = L["Color of the main countdown bar."],
 				get = getcolor, set = setcolor,	passValue = 'mainColor',
 				hasAlpha = true,
-				order = 302,
+				order = 303,
 			},
 			
 			header3 = {
