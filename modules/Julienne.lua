@@ -98,7 +98,7 @@ end
 
 function CutupJulienne:OnEnable()
 	-- Slice and Dice / Combo Point detection
-	self:RegisterEvent("UNIT_SPELLCAST_SENT")
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:RegisterEvent("PLAYER_COMBO_POINTS")
 	
 	-- Netherblade bonus inventory scanning
@@ -404,7 +404,7 @@ function CutupJulienne:PLAYER_COMBO_POINTS()
 	self:CheckVisibility(true)
 end
 
-function CutupJulienne:UNIT_SPELLCAST_SENT(unit, spell, rank, target)
+function CutupJulienne:UNIT_SPELLCAST_SUCCEEDED(unit, spell, rank, target)
 	if unit == 'player' and spell == BS["Slice and Dice"] then
 		self.startTime = GetTime()
 		self.endTime = self.startTime + self:CurrentDuration(combos)
