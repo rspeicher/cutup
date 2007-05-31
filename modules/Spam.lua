@@ -51,10 +51,10 @@ end
 -------------------------------------------------------------------------------
 
 function CutupSpam:UIErrorsFrame_OnEvent(event, msg, ...)
-	if self.db.profile.on then
-		local opt = Cutup.options.args.Spam.args
+	if Cutup:IsModuleActive('Spam') then
+		local opt = Cutup.options.args.Spam
 		for k, v in pairs(opt.args) do
-			if k ~= 'toggle' and opt.get(k) and msg == v.desc then
+			if k ~= 'toggle' and self.db.profile[k] and msg == v.desc then
 				return
 			end
 		end
