@@ -31,6 +31,7 @@ local GetTime = GetTime
 local maxTime, combos = 0, 0
 local improvedRank, improved = nil, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
 local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
+local resetValues = true -- Terrible hack to fix a display issue
 
 local function OnUpdate()
 	if self.running then
@@ -179,7 +180,6 @@ function CutupJulienne:ApplySettings()
 		
 		sndParent:SetAlpha(db.alpha)
 		sndParent:SetScale(db.scale)
-		self:CheckVisibility(true)
 		
 		-- sndBar, the actual Slice and Dice timer
 		sndBar:ClearAllPoints()
@@ -192,53 +192,53 @@ function CutupJulienne:ApplySettings()
 		sndBar:Show()
 		
 		-- sndBar2, the bar behind sndBar that shows what your timer would be if you cast SnD...right now!
+		sndBar2:ClearAllPoints()
+		sndBar2:SetPoint('CENTER', sndParent, 'CENTER')
+		sndBar2:SetWidth(db.width)
+		sndBar2:SetHeight(db.height)
+		sndBar2:SetStatusBarTexture(SM:Fetch('statusbar', db.texture))
+		sndBar2:SetMinMaxValues(0, 1)
+		sndBar2:SetStatusBarColor(unpack(db.potentialColor))
 		if db.potentialShow then
-			sndBar2:ClearAllPoints()
-			sndBar2:SetPoint('CENTER', sndParent, 'CENTER')
-			sndBar2:SetWidth(db.width)
-			sndBar2:SetHeight(db.height)
-			sndBar2:SetStatusBarTexture(SM:Fetch('statusbar', db.texture))
-			sndBar2:SetMinMaxValues(0, 1)
-			sndBar2:SetStatusBarColor(unpack(db.potentialColor))
-			
 			sndBar2:Show()
 		else
 			sndBar2:Hide()
 		end
 		
 		-- sndTimeText, countdown timer text
+		sndTimeText:ClearAllPoints()
+		sndTimeText:SetWidth(db.width)
+		sndTimeText:SetHeight(db.height)
+		if db.textPosition == L["Left"] then
+			sndTimeText:SetPoint('LEFT', sndParent, 'LEFT', 5)
+			sndTimeText:SetJustifyH("LEFT")
+		elseif db.textPosition == L["Center"] then
+			sndTimeText:SetPoint('CENTER', sndParent, 'CENTER')
+			sndTimeText:SetJustifyH("CENTER")
+		elseif db.textPosition == L["Right"] then
+			sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -5)
+			sndTimeText:SetJustifyH("RIGHT")
+		end
+		sndTimeText:SetFont(SM:Fetch('font', db.textFont), db.textSize)
+		sndTimeText:SetTextColor(unpack(db.textColor))
+		sndTimeText:SetShadowColor(0, 0, 0, 1)
+		sndTimeText:SetShadowOffset(0.8, -0.8)
+		sndTimeText:SetNonSpaceWrap(false)
 		if db.textShow then
-			sndTimeText:ClearAllPoints()
-			sndTimeText:SetWidth(db.width)
-			sndTimeText:SetHeight(db.height)
-			if db.textPosition == L["Left"] then
-				sndTimeText:SetPoint('LEFT', sndParent, 'LEFT', 5)
-				sndTimeText:SetJustifyH("LEFT")
-			elseif db.textPosition == L["Center"] then
-				sndTimeText:SetPoint('CENTER', sndParent, 'CENTER')
-				sndTimeText:SetJustifyH("CENTER")
-			elseif db.textPosition == L["Right"] then
-				sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -5)
-				sndTimeText:SetJustifyH("RIGHT")
-			end
-		
-			sndTimeText:SetFont(SM:Fetch('font', db.textFont), db.textSize)
-			sndTimeText:SetTextColor(unpack(db.textColor))
-			sndTimeText:SetShadowColor(0, 0, 0, 1)
-			sndTimeText:SetShadowOffset(0.8, -0.8)
-			sndTimeText:SetNonSpaceWrap(false)
-			
 			sndTimeText:Show()
 		else
 			sndTimeText:Hide()
 		end
+		
+		self:CheckVisibility(true)
 		
 		-- If we're not already running a timer, set some sane default values
 		-- These are used when the user unlocks the bar, they can get an idea of
 		-- what it'll look like. But we don't want to change these values when the
 		-- bar's running!
 		if not self.running and not self.locked then
-			-- FIXME: If we unlock, then lock, then get a combo point on something, these values are shown.
+			resetValues = true
+
 			sndBar:SetValue(0.30)
 			sndBar2:SetValue(0.80)
 			sndTimeText:SetText(L["Julienne"])
@@ -398,8 +398,17 @@ function CutupJulienne:UNIT_INVENTORY_CHANGED(unit)
 end
 
 function CutupJulienne:PLAYER_COMBO_POINTS()
-	combos = GetComboPoints()	
+	combos = GetComboPoints()
 	sndBar2:SetValue(self:CurrentDuration(combos) / maxTime)
+	
+	-- When the user unlocks a non-running bar, they get some default values
+	-- to know what the bar looks like. If they lock and then get a combo point
+	-- on something, those would still be shown, if not for this reset.
+	if resetValues and not self.running then
+		sndBar:SetValue(0)
+		sndTimeText:SetText('')
+		resetValues = nil
+	end
 	
 	self:CheckVisibility(true)
 end
