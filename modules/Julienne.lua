@@ -395,14 +395,18 @@ end
 
 function CutupJulienne:PLAYER_COMBO_POINTS()
 	combos = GetComboPoints()
-	sndBar2:SetValue(self:CurrentDuration(combos) / maxTime)
+	local duration = self:CurrentDuration(combos)
+	sndBar2:SetValue(duration / maxTime)
+	
+	if not self.running then
+		sndTimeText:SetText(("%d"):format(duration))
+	end
 	
 	-- When the user unlocks a non-running bar, they get some default values
 	-- to know what the bar looks like. If they lock and then get a combo point
 	-- on something, those would still be shown, if not for this reset.
 	if resetValues and not self.running then
 		sndBar:SetValue(0)
-		sndTimeText:SetText('')
 		resetValues = nil
 	end
 	
