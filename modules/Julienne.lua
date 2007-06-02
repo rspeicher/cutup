@@ -48,11 +48,7 @@ local function OnUpdate()
 		else
 			local perc = remainingTime / maxTime
 			sndBar:SetValue(perc)
-			if remainingTime < 1 then
-				sndTimeText:SetText('')
-			else
-				sndTimeText:SetText(("%d"):format(remainingTime))
-			end
+			sndTimeText:SetText(("%d"):format(remainingTime))
 		end
 	else
 		if sndParent:IsVisible() then
