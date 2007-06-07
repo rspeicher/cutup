@@ -45,6 +45,11 @@ local function OnUpdate()
 	
 		if remainingTime == 0 then
 			self.running = false
+			
+			if combos > 0 then
+				local duration = self:CurrentDuration(combos)
+				sndTimeText:SetText(("%d"):format(duration))
+			end
 		else
 			local perc = remainingTime / maxTime
 			sndBar:SetValue(perc)
