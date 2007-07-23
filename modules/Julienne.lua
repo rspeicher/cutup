@@ -48,12 +48,12 @@ local function OnUpdate()
 			
 			if combos > 0 then
 				local duration = self:CurrentDuration(combos)
-				sndTimeText:SetText(("%d"):format(duration))
+				sndTimeText:SetText(("%.1f"):format(duration))
 			end
 		else
 			local perc = remainingTime / maxTime
 			sndBar:SetValue(perc)
-			sndTimeText:SetText(("%d"):format(remainingTime))
+			sndTimeText:SetText(("%.1f"):format(remainingTime))
 		end
 	else
 		if sndParent:IsVisible() then
@@ -404,7 +404,7 @@ function CutupJulienne:PLAYER_COMBO_POINTS()
 	sndBar2:SetValue(duration / maxTime)
 	
 	if not self.running then
-		sndTimeText:SetText(("%d"):format(duration))
+		sndTimeText:SetText(("%.1f"):format(duration))
 	end
 	
 	-- When the user unlocks a non-running bar, they get some default values
@@ -516,7 +516,7 @@ do
 				name = L["Width"],
 				desc = L["Width"],
 				get = get, set = set, passValue = 'width',
-				min = 10, max = 350, step = 5,
+				min = 10, max = 350, step = 1, bigStep = 5,
 				order = 201,
 			},
 			height = {
