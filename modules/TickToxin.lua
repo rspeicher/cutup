@@ -6,11 +6,6 @@ Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times poison applications.
 Inspired By: A lot of the CandyBar-related code was ripped from HotMan.
-
-TODO:
-	- Bars don't disappear when your target dies. Should they? Can they?
-	- Bars don't account for different targets. Rogues don't often poison multiple targets anyway.
-	- Deadly Poison bar will continue to tick even if your DP was removed via Envenom. I doubt there's an easy way around this.
 ]]
 
 local Cutup = Cutup

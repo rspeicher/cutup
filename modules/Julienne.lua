@@ -516,7 +516,7 @@ do
 				name = L["Width"],
 				desc = L["Width"],
 				get = get, set = set, passValue = 'width',
-				min = 10, max = 350, step = 1, bigStep = 5,
+				min = 10, max = 600, step = 1, bigStep = 5,
 				order = 201,
 			},
 			height = {
@@ -524,7 +524,7 @@ do
 				name = L["Height"],
 				desc = L["Height"],
 				get = get, set = set, passValue = 'height',
-				min = 2, max = 30, step = 1,
+				min = 2, max = 50, step = 1,
 				order = 202,
 			},
 			scale = {
