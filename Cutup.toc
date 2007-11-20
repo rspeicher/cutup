@@ -9,7 +9,8 @@
 ## X-AceForum: 5366
 ## X-RelSite-WoWI: 7214
 
-## X-Embeds: Ace2, PaintChipsLib, CandyBar, SharedMediaLib
+## OptionalDeps: LibSharedMedia-2.0, SharedMedia-2.0
+## X-Embeds: Ace2, PaintChipsLib, CandyBar, LibSharedMedia-2.0
 
 ## SavedVariables: CutupDB
 

@@ -15,7 +15,7 @@ end
 
 local L = AceLibrary("AceLocale-2.2"):new("Cutup")
 local Gratuity = AceLibrary("Gratuity-2.0")
-local SM = AceLibrary("SharedMedia-1.0")
+local media = LibStub("LibSharedMedia-2.0")
 
 local CutupTickToxin = Cutup:NewModule('TickToxin', 'CandyBar-2.0')
 local self = CutupTickToxin
@@ -114,7 +114,7 @@ function CutupTickToxin:StartBar(name, duration, text, icon)
 	self:RegisterCandyBar(name, duration, text, icon, "green")
 	self:StoreActiveBar(name)
 	
-	self:SetCandyBarTexture(name, SM:Fetch("statusbar", self.db.profile.texture))
+	self:SetCandyBarTexture(name, media:Fetch("statusbar", self.db.profile.texture))
 	self:SetCandyBarWidth(name, self.db.profile.width)
 	self:SetCandyBarHeight(name, self.db.profile.height)
 	self:SetCandyBarFontSize(name, self.db.profile.fontsize)
@@ -133,7 +133,7 @@ end
 function CutupTickToxin:UpdateActiveBars()
 	for i=1, #activebars do
 		local value = activebars[i]
-		self:SetCandyBarTexture(value, SM:Fetch("statusbar", self.db.profile.texture))
+		self:SetCandyBarTexture(value, media:Fetch("statusbar", self.db.profile.texture))
 		self:SetCandyBarWidth(value, self.db.profile.width)
 		self:SetCandyBarHeight(value, self.db.profile.height)
 		self:SetCandyBarFontSize(value, self.db.profile.fontsize)
@@ -313,7 +313,7 @@ do
 				get = get,
 				set = set,
 				passValue = 'texture',
-				validate = SM:List('statusbar'),
+				validate = media:List('statusbar'),
 				order = 207,
 			},
 			growup = {

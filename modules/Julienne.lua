@@ -14,8 +14,8 @@ if Cutup:HasModule('Julienne') then
 end
 
 local L = AceLibrary("AceLocale-2.2"):new("Cutup")
-local BS = AceLibrary("Babble-Spell-2.2")
-local SM = AceLibrary("SharedMedia-1.0")
+local BS = LibStub("Babble-Spell-2.2")
+local media = LibStub("LibSharedMedia-2.0")
 
 local CutupJulienne = Cutup:NewModule('Julienne')
 local self = CutupJulienne
@@ -172,7 +172,7 @@ function CutupJulienne:ApplySettings()
 			back.bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
 			back.tile = true
 			back.tileSize = 16
-			back.edgeFile = SM:Fetch('border', db.border)
+			back.edgeFile = media:Fetch('border', db.border)
 			back.edgeSize = 16
 			back.insets = { top = 4, right = 4, bottom = 4, left = 4 }
 		end
@@ -187,7 +187,7 @@ function CutupJulienne:ApplySettings()
 		sndBar:SetPoint('CENTER', sndParent, 'CENTER')
 		sndBar:SetWidth(db.width)
 		sndBar:SetHeight(db.height)
-		sndBar:SetStatusBarTexture(SM:Fetch('statusbar', db.texture))
+		sndBar:SetStatusBarTexture(media:Fetch('statusbar', db.texture))
 		sndBar:SetMinMaxValues(0, 1)
 		sndBar:SetStatusBarColor(unpack(db.mainColor))
 		sndBar:Show()
@@ -197,7 +197,7 @@ function CutupJulienne:ApplySettings()
 		sndBar2:SetPoint('CENTER', sndParent, 'CENTER')
 		sndBar2:SetWidth(db.width)
 		sndBar2:SetHeight(db.height)
-		sndBar2:SetStatusBarTexture(SM:Fetch('statusbar', db.texture))
+		sndBar2:SetStatusBarTexture(media:Fetch('statusbar', db.texture))
 		sndBar2:SetMinMaxValues(0, 1)
 		sndBar2:SetStatusBarColor(unpack(db.potentialColor))
 		if db.potentialShow then
@@ -220,7 +220,7 @@ function CutupJulienne:ApplySettings()
 			sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -5)
 			sndTimeText:SetJustifyH("RIGHT")
 		end
-		sndTimeText:SetFont(SM:Fetch('font', db.textFont), db.textSize)
+		sndTimeText:SetFont(media:Fetch('font', db.textFont), db.textSize)
 		sndTimeText:SetTextColor(unpack(db.textColor))
 		sndTimeText:SetShadowColor(0, 0, 0, 1)
 		sndTimeText:SetShadowOffset(0.8, -0.8)
@@ -548,7 +548,7 @@ do
 				name = L["Texture"],
 				desc = L["Texture"],
 				get = get, set = set, passValue = 'texture',
-				validate = SM:List('statusbar'),
+				validate = media:List('statusbar'),
 				order = 205,
 			},
 			
@@ -562,7 +562,7 @@ do
 				name = L["Border"],
 				desc = L["Border"],
 				get = get, set = set, passValue = 'border',
-				validate = SM:List('border'),
+				validate = media:List('border'),
 				order = 301,
 			},
 			backColor = {
@@ -636,7 +636,7 @@ do
 				name = L["Text font"],
 				desc = L["Text font"],
 				get = get, set = set, passValue = 'textFont',
-				validate = SM:List('font'),
+				validate = media:List('font'),
 				order = 504,
 			},
 			textSize = {
