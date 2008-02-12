@@ -1,4 +1,4 @@
-if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
+if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"))) ~= "DRUID" then return end
 
 --[[
 Name: Cutup
