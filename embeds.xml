@@ -19,6 +19,4 @@
 <Script file="libs\Deformat-2.0\Deformat-2.0.lua"/>
 <Script file="libs\Gratuity-2.0\Gratuity-2.0.lua"/>
 <Script file="libs\Waterfall-1.0\Waterfall-1.0.lua"/>
-
-<Script file="libs\Babble-Spell-2.2\Babble-Spell-2.2.lua"/>
 </Ui>

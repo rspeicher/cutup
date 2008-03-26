@@ -14,7 +14,6 @@ if Cutup:HasModule('Julienne') then
 end
 
 local L = AceLibrary("AceLocale-2.2"):new("Cutup")
-local BS = LibStub("Babble-Spell-2.2")
 local media = LibStub("LibSharedMedia-2.0")
 
 local CutupJulienne = Cutup:NewModule('Julienne')
@@ -32,6 +31,7 @@ local maxTime, combos = 0, 0
 local improvedRank, improved = nil, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
 local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
 local resetValues = true -- Terrible hack to fix a display issue
+local spellInfo = GetSpellInfo(6774) -- Slice and Dice (Rank 2)
 
 local function OnUpdate()
 	if self.running then
@@ -419,7 +419,7 @@ function CutupJulienne:PLAYER_COMBO_POINTS()
 end
 
 function CutupJulienne:UNIT_SPELLCAST_SUCCEEDED(unit, spell, rank, target)
-	if unit == 'player' and spell == BS["Slice and Dice"] then
+	if unit == 'player' and spell == spellInfo then
 		self.startTime = GetTime()
 		self.endTime = self.startTime + self:CurrentDuration(combos)
 		self.running = true
