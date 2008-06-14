@@ -211,13 +211,13 @@ function CutupJulienne:ApplySettings()
 		sndTimeText:SetWidth(db.width)
 		sndTimeText:SetHeight(db.height)
 		if db.textPosition == L["Left"] then
-			sndTimeText:SetPoint('LEFT', sndParent, 'LEFT', 5)
+			sndTimeText:SetPoint('LEFT', sndParent, 'LEFT', 10, 0)
 			sndTimeText:SetJustifyH("LEFT")
 		elseif db.textPosition == L["Center"] then
 			sndTimeText:SetPoint('CENTER', sndParent, 'CENTER')
 			sndTimeText:SetJustifyH("CENTER")
 		elseif db.textPosition == L["Right"] then
-			sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -5)
+			sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -10, 0)
 			sndTimeText:SetJustifyH("RIGHT")
 		end
 		sndTimeText:SetFont(media:Fetch('font', db.textFont), db.textSize)
