@@ -2,75 +2,79 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 
 --[[
 Name: Cutup
-Revision: $Revision$
+Revision: $Revision: 74678 $
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A collection of Rogue modules.
 Inspired By: Modular design of Quartz.
 ]]
 
-local L = AceLibrary("AceLocale-2.2"):new("Cutup")
+local AceConfig = LibStub("AceConfigDialog-3.0")
+local Media = LibStub("LibSharedMedia-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale("Cutup")
 
-Cutup = AceLibrary("AceAddon-2.0"):new("AceConsole-2.0", "AceDB-2.0", "AceEvent-2.0", "AceHook-2.1", "AceModuleCore-2.0", "AceDebug-2.0")
-Cutup:SetModuleMixins("AceEvent-2.0", "AceHook-2.1", "AceDebug-2.0")
-Cutup:RegisterDB("CutupDB")
+Cutup = LibStub("AceAddon-3.0"):NewAddon("Cutup", "AceEvent-3.0", "AceConsole-3.0")
 local self = Cutup
 
 local options
-
+local optFrame
 function Cutup:OnInitialize()
-	-- Quartz goodness
-	if AceLibrary:HasInstance("Waterfall-1.0") then
-		AceLibrary("Waterfall-1.0"):Register('Cutup',
-			'aceOptions', options,
-			'title', L["Cutup"],
-			'treeLevels', 2,
-			'colorR', 0.2, 'colorG', 0.8, 'colorB', 0.2
-		)
-		self:RegisterChatCommand({"/cutup"}, function()
-			AceLibrary("Waterfall-1.0"):Open('Cutup')
-		end)
-		if AceLibrary:HasInstance("Dewdrop-2.0") then
-			self:RegisterChatCommand({"/cutupdd"}, function()
-				AceLibrary("Dewdrop-2.0"):Open('Cutup', 'children', function()
-					AceLibrary("Dewdrop-2.0"):FeedAceOptionsTable(options)
-				end)
-			end)
-		end
-		self:RegisterChatCommand({"/cutupcl"}, options)
-	elseif AceLibrary:HasInstance("Dewdrop-2.0") then
-		self:RegisterChatCommand({"/cutup"}, function()
-			AceLibrary("Dewdrop-2.0"):Open('Cutup', 'children', function()
-				AceLibrary("Dewdrop-2.0"):FeedAceOptionsTable(options)
-			end)
-		end)
-	else
-		self:RegisterChatCommand({"/cutup"}, options)
-	end
-	
-	self:RegisterDefaults("profile", {
+	self.db = LibStub("AceDB-3.0"):New("CutupDB", nil, "Default")
+	self.db:RegisterDefaults({
+		profile = {
+			modules = {},
+		}
 	})
+	
+	optFrame = AceConfig:AddToBlizOptions(L["Cutup"], L["Cutup"])
+	-- FIXME: If we reset the profile, how do we make modules re-register their defaults table?
+	--options.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+	self.configOptions = options
+	LibStub("AceConfig-3.0"):RegisterOptionsTable(L["Cutup"], options)
+	self:RegisterChatCommand("cutup", self.ShowConfig)
+	
+	self:UnregisterAllEvents()
+end
+
+function Cutup:OnEnable()
+	local fmt = "|cffffffff%s - |r|cff33ff99%s|r"
+	
+	local name, module
+	for name, module in self:IterateModules() do
+		-- Create an option entry for this module to allow enable/disable
+		options.args.modules.args[name] = {
+			type = 'toggle',
+			name = fmt:format(L[name], L[name .. "_Desc"]),
+			desc = L["Toggle %s"]:format(L[name]),
+			width = "full",
+			get = function(info)
+				return self.db.profile.modules[name] ~= false or false
+			end,
+			set = function(info, v)
+				self.db.profile.modules[name] = v
+				if v then
+					self:EnableModule(name)
+				else
+					self:DisableModule(name)
+				end
+			end
+		}
+	
+		if not module:IsEnabled() and self.db.profile.modules[name] ~= false then
+			self:EnableModule(name)
+		end
+	end
 end
 
 function Cutup:OnDisable()
+	local name, module
 	for name, module in self:IterateModules() do
-		self:ToggleModuleActive(module, false)
+		self:DisableModule(name)
 	end
 end
 
-function Cutup:OnDebugEnable()
-	self:Debug("Debug enabled.")
-	
-	for name, mod in self:IterateModules() do
-		mod:SetDebugging(true)
-	end
-end
-
-function Cutup:OnDebugDisable()
-	self:Debug("Debug disabled.")
-	
-	for name, mod in self:IterateModules() do
-		mod:SetDebugging(false)
-	end
+function Cutup:ShowConfig()
+	AceConfig:SetDefaultSize(L["Cutup"], 500, 550)
+	AceConfig:Open(L["Cutup"], configFrame)
 end
 
 do
@@ -78,7 +82,23 @@ do
 		type = "group",
 		name = L["Cutup"],
 		desc = L["A collection of Rogue modules."],
-		args = { },
+		childGroups = "tab",
+		args = {
+			config = {
+				type = "execute",
+				name = L["Configure"],
+				desc = L["Open the configuration dialog"],
+				func = Cutup.ShowConfig,
+				guiHidden = true
+			},
+			modules = {
+				type = "group",
+				name = L["Modules"],
+				order = 0,
+				args = {
+				}
+			},
+		},
 	}
 	
 	Cutup.options = options

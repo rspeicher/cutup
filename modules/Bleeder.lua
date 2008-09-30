@@ -1,16 +1,16 @@
 if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 
 --[[
-Name: Cutup_Julienne
+Name: Cutup_Bleeder
 Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
-Description: A module for Cutup that times Slice and Dice.
-Inspired by: Disco Dice, SliceWatcher, Quartz (code)
+Description: A module for Cutup that times Rupture.
+Inspired by: Cutup_Julienne
 
-It slices, it dices, it makes julienne fries, whatever those are!
+We've got a bleeder!
 ]]
 
-local mod = Cutup:NewModule("Julienne", nil, "AceEvent-3.0", "AceConsole-3.0")
+local mod = Cutup:NewModule("Bleeder", nil, "AceEvent-3.0", "AceConsole-3.0")
 local Media = LibStub("LibSharedMedia-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("Cutup")
 local self = mod
@@ -18,7 +18,7 @@ local db
 
 local defaults = {
 	profile = {
-		julienne = {
+		bleeder = {
 			y = 350,
 			
 			width   = 250,
@@ -29,10 +29,10 @@ local defaults = {
 			
 			border    = 'None',
 			backColor = { 0, 0, 0, 1 },
-			mainColor = { 0.38, 0.38, 1.0, 0.8 },
+			mainColor = { 1, 0, 0.1, 0.8 },
 			
 			potentialShow  = true,
-			potentialColor = { 0.85, 0.80, 0, 1 },
+			potentialColor = { 0.5, 0, 0.1, 1 },
 			
 			textShow     = true,
 			textPosition = 2,
@@ -47,19 +47,16 @@ local defaults = {
 
 -- Frames
 local locked = true
-local sndBar, sndBar2, sndTimeText, sndParent, db
+local rupBar, rupBar2, rupTimeText, rupParent, db
 
 -- Localized functions
 local GetTime = _G.GetTime
 local UnitGUID = _G.UnitGUID
 
 -- Settings/infos
-local maxTime, combos = 0, 0
-local improvedRank, improved = nil, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
-local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
-local netherbladeSet = { 29044, 29045, 29046, 29047, 29048 }
+local maxTime, combos = 16, 0
 local resetValues = true -- Terrible hack to fix a display issue
-local spellInfo = GetSpellInfo(6774) -- Slice and Dice (Rank 2)
+local spellInfo = GetSpellInfo(26867) -- Rupture (Rank 7)
 local lastGUID = nil
 
 local function OnUpdate()
@@ -77,25 +74,25 @@ local function OnUpdate()
 			
 			if combos > 0 then
 				local duration = self:CurrentDuration(combos)
-				sndTimeText:SetText(("%.1f"):format(duration))
+				rupTimeText:SetText(("%.1f"):format(duration))
 			end
 		else
 			local perc = remainingTime / maxTime
-			sndBar:SetValue(perc)
-			sndTimeText:SetText(("%.1f"):format(remainingTime))
+			rupBar:SetValue(perc)
+			rupTimeText:SetText(("%.1f"):format(remainingTime))
 		end
 	else
-		if sndParent:IsVisible() then
+		if rupParent:IsVisible() then
 			self:CheckVisibility(true)
 		end
 	end
 end
 mod.OnUpdate = OnUpdate
 local function OnShow()
-	sndParent:SetScript('OnUpdate', OnUpdate)
+	rupParent:SetScript('OnUpdate', OnUpdate)
 end
 local function OnHide()
-	sndParent:SetScript('OnUpdate', nil)
+	rupParent:SetScript('OnUpdate', nil)
 end
 
 function mod:OnInitialize()
@@ -108,39 +105,31 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
-	-- Slice and Dice / Combo Point detection
+	-- Rupture / Combo Point detection
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:RegisterEvent("PLAYER_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
-	
-	-- Netherblade bonus inventory scanning
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self:RegisterEvent("PLAYER_LEAVING_WORLD")
-	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
-	
-	-- Improved Slice and Dice scanning
-	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	
 	self.locked = locked
 	self.startTime = 0
 	self.endTime = 0
 	self.running = false
 	
-	if not sndParent then
-		sndParent = CreateFrame('Frame', nil, UIParent)
-		sndParent:SetFrameStrata('LOW')
-		sndParent:SetScript('OnShow', OnShow)
-		sndParent:SetScript('OnHide', OnHide)
-		sndParent:SetMovable(true)
-		sndParent:RegisterForDrag('LeftButton')
-		sndParent:SetClampedToScreen(true)
+	if not rupParent then
+		rupParent = CreateFrame('Frame', nil, UIParent)
+		rupParent:SetFrameStrata('LOW')
+		rupParent:SetScript('OnShow', OnShow)
+		rupParent:SetScript('OnHide', OnHide)
+		rupParent:SetMovable(true)
+		rupParent:RegisterForDrag('LeftButton')
+		rupParent:SetClampedToScreen(true)
 		
-		sndBar = CreateFrame("StatusBar", nil, sndParent)
-		sndBar:SetFrameStrata('MEDIUM')
-		sndBar2 = CreateFrame("StatusBar", nil, sndParent)
-		sndTimeText = sndBar:CreateFontString(nil, 'OVERLAY')
+		rupBar = CreateFrame("StatusBar", nil, rupParent)
+		rupBar:SetFrameStrata('MEDIUM')
+		rupBar2 = CreateFrame("StatusBar", nil, rupParent)
+		rupTimeText = rupBar:CreateFontString(nil, 'OVERLAY')
 		
-		sndParent:Hide()
+		rupParent:Hide()
 	end
 	self:ApplySettings()
 end
@@ -148,8 +137,8 @@ end
 function mod:OnDisable()
 	self.running = false
 	self.locked = true
-	sndParent:Hide()
-	sndParent = nil
+	rupParent:Hide()
+	rupParent = nil
 	
 	self:UnregisterAllEvents()
 end
@@ -161,28 +150,28 @@ end
 function mod:ApplySettings()
 	if not self:IsEnabled() then return end
 	
-	if sndParent then
-		local db = db.profile.julienne
+	if rupParent then
+		local db = db.profile.bleeder
 		local back = {}
 		
-		-- sndParent, to which all our stuff is anchored
-		sndParent:ClearAllPoints()
+		-- rupParent, to which all our stuff is anchored
+		rupParent:ClearAllPoints()
 		if not db.x then
 			db.x = (UIParent:GetWidth() / 2 - (db.width * (db.scale/100.0)) / 2) / (db.scale/100.0)
 		end
-		sndParent:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT', db.x, db.y)
+		rupParent:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT', db.x, db.y)
 		
 		if db.border == "None" then
-			sndParent:SetWidth(db.width)
-			sndParent:SetHeight(db.height)
+			rupParent:SetWidth(db.width)
+			rupParent:SetHeight(db.height)
 			
 			back.bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
 			back.tile = true
 			back.tileSize = 16
 			back.insets = { top = 0, right = 0, bottom = 0, left = 0 }
 		else
-			sndParent:SetWidth(db.width + 9)
-			sndParent:SetHeight(db.height + 10)
+			rupParent:SetWidth(db.width + 9)
+			rupParent:SetHeight(db.height + 10)
 			
 			back.bgFile = "Interface\\Tooltips\\UI-Tooltip-Background"
 			back.tile = true
@@ -191,57 +180,57 @@ function mod:ApplySettings()
 			back.edgeSize = 16
 			back.insets = { top = 4, right = 4, bottom = 4, left = 4 }
 		end
-		sndParent:SetBackdrop(back)
-		sndParent:SetBackdropColor(unpack(db.backColor))
+		rupParent:SetBackdrop(back)
+		rupParent:SetBackdropColor(unpack(db.backColor))
 		
-		sndParent:SetAlpha(db.alpha)
-		sndParent:SetScale(db.scale / 100.0)
+		rupParent:SetAlpha(db.alpha)
+		rupParent:SetScale(db.scale / 100.0)
 		
-		-- sndBar, the actual Slice and Dice timer
-		sndBar:ClearAllPoints()
-		sndBar:SetPoint('CENTER', sndParent, 'CENTER')
-		sndBar:SetWidth(db.width)
-		sndBar:SetHeight(db.height)
-		sndBar:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
-		sndBar:SetMinMaxValues(0, 1)
-		sndBar:SetStatusBarColor(unpack(db.mainColor))
-		sndBar:Show()
+		-- rupBar, the actual Rupture timer
+		rupBar:ClearAllPoints()
+		rupBar:SetPoint('CENTER', rupParent, 'CENTER')
+		rupBar:SetWidth(db.width)
+		rupBar:SetHeight(db.height)
+		rupBar:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
+		rupBar:SetMinMaxValues(0, 1)
+		rupBar:SetStatusBarColor(unpack(db.mainColor))
+		rupBar:Show()
 		
-		-- sndBar2, the bar behind sndBar that shows what your timer would be if you cast SnD...right now!
-		sndBar2:ClearAllPoints()
-		sndBar2:SetPoint('CENTER', sndParent, 'CENTER')
-		sndBar2:SetWidth(db.width)
-		sndBar2:SetHeight(db.height)
-		sndBar2:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
-		sndBar2:SetMinMaxValues(0, 1)
-		sndBar2:SetStatusBarColor(unpack(db.potentialColor))
+		-- rupBar2, the bar behind rupBar that shows what your timer would be if you cast Rupture...right now!
+		rupBar2:ClearAllPoints()
+		rupBar2:SetPoint('CENTER', rupParent, 'CENTER')
+		rupBar2:SetWidth(db.width)
+		rupBar2:SetHeight(db.height)
+		rupBar2:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
+		rupBar2:SetMinMaxValues(0, 1)
+		rupBar2:SetStatusBarColor(unpack(db.potentialColor))
 		if db.potentialShow then
-			sndBar2:Show()
+			rupBar2:Show()
 		else
-			sndBar2:Hide()
+			rupBar2:Hide()
 		end
 		
-		-- sndTimeText, countdown timer text
-		sndTimeText:ClearAllPoints()
+		-- rupTimeText, countdown timer text
+		rupTimeText:ClearAllPoints()
 		if db.textPosition == 1 then -- LEFT
-			sndTimeText:SetPoint('RIGHT', sndParent, 'LEFT')
-			sndTimeText:SetJustifyH("LEFT")
+			rupTimeText:SetPoint('RIGHT', rupParent, 'LEFT')
+			rupTimeText:SetJustifyH("LEFT")
 		elseif db.textPosition == 2 then -- CENTER
-			sndTimeText:SetPoint('CENTER', sndParent, 'CENTER')
-			sndTimeText:SetJustifyH("CENTER")
+			rupTimeText:SetPoint('CENTER', rupParent, 'CENTER')
+			rupTimeText:SetJustifyH("CENTER")
 		elseif db.textPosition == 3 then -- RIGHT
-			sndTimeText:SetPoint('LEFT', sndParent, 'RIGHT')
-			sndTimeText:SetJustifyH("RIGHT")
+			rupTimeText:SetPoint('LEFT', rupParent, 'RIGHT')
+			rupTimeText:SetJustifyH("RIGHT")
 		end
-		sndTimeText:SetFont(Media:Fetch('font', db.textFont), db.textSize)
-		sndTimeText:SetTextColor(unpack(db.textColor))
-		sndTimeText:SetShadowColor(0, 0, 0, 1)
-		sndTimeText:SetShadowOffset(0.8, -0.8)
-		sndTimeText:SetNonSpaceWrap(false)
+		rupTimeText:SetFont(Media:Fetch('font', db.textFont), db.textSize)
+		rupTimeText:SetTextColor(unpack(db.textColor))
+		rupTimeText:SetShadowColor(0, 0, 0, 1)
+		rupTimeText:SetShadowOffset(0.8, -0.8)
+		rupTimeText:SetNonSpaceWrap(false)
 		if db.textShow then
-			sndTimeText:Show()
+			rupTimeText:Show()
 		else
-			sndTimeText:Hide()
+			rupTimeText:Hide()
 		end
 		
 		self:CheckVisibility(true)
@@ -253,9 +242,9 @@ function mod:ApplySettings()
 		if not self.running and not self.locked then
 			resetValues = true
 
-			sndBar:SetValue(0.30)
-			sndBar2:SetValue(0.80)
-			sndTimeText:SetText(L["Julienne"])
+			rupBar:SetValue(0.30)
+			rupBar2:SetValue(0.80)
+			rupTimeText:SetText(L["Bleeder"])
 		end
 	end
 end
@@ -271,7 +260,7 @@ function mod:CheckVisibility(perform)
 		visible = true
 	else
 		-- We're showing the potential bar and we have combos to show
-		if db.profile.julienne.potentialShow and combos > 0 then
+		if db.profile.bleeder.potentialShow and combos > 0 then
 			visible = true
 		-- We're unlocked and want to give the user something to drag/test settings with
 		elseif not self.locked then
@@ -281,9 +270,9 @@ function mod:CheckVisibility(perform)
 	
 	if perform then
 		if visible then
-			sndParent:Show()
+			rupParent:Show()
 		else
-			sndParent:Hide()
+			rupParent:Hide()
 		end
 	end
 	
@@ -299,18 +288,15 @@ function mod:TestBar()
 	
 	self.running = true
 
-	self:Print("Netherblade bonus:", netherbladeBonus)
-	self:Print("Talent rank:", improvedRank)
-	
-	sndBar:SetValue(0)
-	sndBar2:SetValue(0)
+	rupBar:SetValue(0)
+	rupBar2:SetValue(0)
 
 	-- Pretend we've got a certain number of combo points
 	combos = math.random(0, 5)
 		
-	sndParent:Show()
+	rupParent:Show()
 
-	-- We just "used" Slice and Dice. How much time did we get?!
+	-- We just "used" Rupture. How much time did we get?!
 	local duration = self:CurrentDuration(combos)
 	self:Print(combos, "combos,", duration, "seconds.")
 
@@ -320,46 +306,8 @@ function mod:TestBar()
 
 	-- Pretend we got Ruthlessness?
 	combos = math.random(0, 1)
-	sndBar2:SetValue(self:CurrentDuration(combos) / maxTime)
+	rupBar2:SetValue(self:CurrentDuration(combos) / maxTime)
 	self:Print(combos, "point(s) from Ruthlessness")
-end
-
--- ---------------------
--- Bonus scanning
--- ---------------------
-
-function mod:ScanNetherblade()
-	netherbladeBonus = false
-	
-	local count = 0
-	
-	local link
-	for i=1,10 do
-		link = GetInventoryItemLink('player', i)
-		if link then
-			for k,v in pairs(netherbladeSet) do
-				if link:find(v) then
-					count = count + 1
-				end
-			end
-		end
-	end
-	
-	if count >= 2 then
-		netherbladeBonus = true
-	end
-	self:MaxDuration()
-	
-	return netherbladeBonus
-end
-function mod:ScanTalent()
-	improvedRank = 0
-	
-	local talent, _, _, _, rank = GetTalentInfo(2, 4)
-	improvedRank = rank
-	self:MaxDuration()
-	
-	return improvedRank
 end
 
 -- ---------------------
@@ -369,47 +317,12 @@ end
 function mod:CurrentDuration(combos)
 	if not combos or combos == 0 then return 0 end
 	
-	if improvedRank == nil then
-		self:ScanTalent()
-	end
-	if netherbladeBonus == nil then
-		self:ScanNetherblade()
-	end
-	
-	local value = 0
-	local bonus = ((netherbladeBonus) and 3 or 0)
-	
-	-- Netherblade bonus is applied after Combo modifier, before Talent modifier
-	value = (9 + (combos - 1) * 3) + bonus
-	value = value + (value * improved[improvedRank + 1])
-	
-	return value
-end
-function mod:MaxDuration()
-	-- This is the maximum length of time that a Slice and Dice will run for,
-	-- affected by gear and talents.
-	maxTime = self:CurrentDuration(MAX_COMBO_POINTS)
-	
-	return maxTime
+	return 8 + ((combos - 1) * 2)
 end
 
 -- ---------------------
 -- Events
 -- ---------------------
-
-function mod:PLAYER_ENTERING_WORLD()
-	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
-end
-function mod:PLAYER_LEAVING_WORLD()
-	self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
-end
-function mod:UNIT_INVENTORY_CHANGED(event, unit)
-	if unit == "player" then
-		self:ScanNetherblade()
-	end
-	
-	return
-end
 
 function mod:PLAYER_TARGET_CHANGED()
 	local curGUID = UnitGUID("target")
@@ -425,17 +338,17 @@ end
 function mod:PLAYER_COMBO_POINTS()
 	combos = GetComboPoints()
 	local duration = self:CurrentDuration(combos)
-	sndBar2:SetValue(duration / maxTime)
+	rupBar2:SetValue(duration / maxTime)
 	
 	if not self.running then
-		sndTimeText:SetText(("%.1f"):format(duration))
+		rupTimeText:SetText(("%.1f"):format(duration))
 	end
 	
 	-- When the user unlocks a non-running bar, they get some default values
 	-- to know what the bar looks like. If they lock and then get a combo point
 	-- on something, those would still be shown, if not for this reset.
 	if resetValues and not self.running then
-		sndBar:SetValue(0)
+		rupBar:SetValue(0)
 		resetValues = nil
 	end
 	
@@ -447,7 +360,7 @@ function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 		self.startTime = GetTime()
 		self.endTime = self.startTime + self:CurrentDuration(combos)
 		self.running = true
-		sndParent:Show() -- Might not be shown if potentialShow is disabled
+		rupParent:Show() -- Might not be shown if potentialShow is disabled
 	end
 	
 	return
@@ -464,28 +377,28 @@ do
 	end
 
 	local function set(t, value)
-		db.profile.julienne[t[#t]] = value
+		db.profile.bleeder[t[#t]] = value
 		self:ApplySettings()
 	end
 	local function get(t)
-		return db.profile.julienne[t[#t]]
+		return db.profile.bleeder[t[#t]]
 	end
 	
 	local function setcolor(t, ...)
-		db.profile.julienne[t[#t]] = {...}
+		db.profile.bleeder[t[#t]] = {...}
 		self:ApplySettings()
 	end
 	local function getcolor(t)
-		return unpack(db.profile.julienne[t[#t]])
+		return unpack(db.profile.bleeder[t[#t]])
 	end
 	
 	local function dragstart()
-		sndParent:StartMoving()
+		rupParent:StartMoving()
 	end
 	local function dragstop()
-		db.profile.julienne.x = sndParent:GetLeft()
-		db.profile.julienne.y = sndParent:GetBottom()
-		sndParent:StopMovingOrSizing()
+		db.profile.bleeder.x = rupParent:GetLeft()
+		db.profile.bleeder.y = rupParent:GetBottom()
+		rupParent:StopMovingOrSizing()
 	end
 	
 	local function testbar()
@@ -495,26 +408,26 @@ do
 	-- Select tables
 	local textPosition = { L["Left"], L["Center"], L["Right"] }
 	
-	Cutup.options.args.Julienne = {
+	Cutup.options.args.Bleeder = {
 		type = 'group',
-		name = L["Julienne"],
-		desc = L["Julienne_Desc"],
-		icon = "Interface\\Icons\\Ability_Rogue_SliceDice", -- FIXME: Does nothing?
+		name = L["Bleeder"],
+		desc = L["Bleeder_Desc"],
+		icon = "Interface\\Icons\\Ability_Rogue_Rupture", -- FIXME: Does nothing?
 		cmdHidden = true,
 		disabled = function() return not self:IsEnabled() end,
 		args = {
 			desc = {
 				type = 'description',
-				name = "  " .. L["Julienne_Desc"] .. "\n\n",
+				name = "  " .. L["Bleeder_Desc"] .. "\n\n",
 				order = 1,
 				cmdHidden = true,
-				image = "Interface\\Icons\\Ability_Rogue_SliceDice",
+				image = "Interface\\Icons\\Ability_Rogue_Rupture",
 				imageWidth = 16, imageHeight = 16,
 			},
 			test = {
 				type = 'execute',
 				name = 'Test - DEBUGGING',
-				desc = 'Test the bar without actually having Slice and Dice up.',
+				desc = 'Test the bar without actually having Rupture up.',
 				func = testbar,
 				order = 4,
 				hidden = true,
@@ -538,14 +451,14 @@ do
 							self.locked = v
 							if not self:IsEnabled() then return end
 							if v then
-								sndParent:EnableMouse(false)
-								sndParent:SetScript('OnDragStart', nil)
-								sndParent:SetScript('OnDragStop', nil)
+								rupParent:EnableMouse(false)
+								rupParent:SetScript('OnDragStart', nil)
+								rupParent:SetScript('OnDragStop', nil)
 							else
-								sndParent:Show()
-								sndParent:EnableMouse(true)
-								sndParent:SetScript('OnDragStart', dragstart)
-								sndParent:SetScript('OnDragStop', dragstop)
+								rupParent:Show()
+								rupParent:EnableMouse(true)
+								rupParent:SetScript('OnDragStart', dragstart)
+								rupParent:SetScript('OnDragStop', dragstop)
 								self:ApplySettings()
 							end
 						end,
@@ -604,9 +517,9 @@ do
 					posX = {
 						type = 'input',
 						name = L["X Position"],
-						get = function(info) return tostring(db.profile.julienne.x) end,
+						get = function(info) return tostring(db.profile.bleeder.x) end,
 						set = function(info, v)
-							db.profile.julienne.x = tonumber(v)
+							db.profile.bleeder.x = tonumber(v)
 							self:ApplySettings()
 						end,
 						order = 109,
@@ -614,9 +527,9 @@ do
 					posY = {
 						type = 'input',
 						name = L["Y Position"],
-						get = function(info) return tostring(db.profile.julienne.y) end,
+						get = function(info) return tostring(db.profile.bleeder.y) end,
 						set = function(info, v)
-							db.profile.julienne.y = tonumber(v)
+							db.profile.bleeder.y = tonumber(v)
 							self:ApplySettings()
 						end,
 						order = 110,
@@ -639,9 +552,9 @@ do
 					border = {
 						type = 'select',
 						name = L["Border"],
-						get = function(info) return GetLSMIndex("border", db.profile.julienne.border) end,
+						get = function(info) return GetLSMIndex("border", db.profile.bleeder.border) end,
 						set = function(info, v)
-							db.profile.julienne.border = Media:List("border")[v]
+							db.profile.bleeder.border = Media:List("border")[v]
 							self:ApplySettings()
 						end,
 						values = Media:List('border'),
@@ -693,9 +606,9 @@ do
 					texture = {
 						type = 'select',
 						name = L["Texture"],
-						get = function(info) return GetLSMIndex("statusbar", db.profile.julienne.texture) end,
+						get = function(info) return GetLSMIndex("statusbar", db.profile.bleeder.texture) end,
 						set = function(info, v)
-							db.profile.julienne.texture = Media:List("statusbar")[v]
+							db.profile.bleeder.texture = Media:List("statusbar")[v]
 							self:ApplySettings()
 						end,
 						values = Media:List('statusbar'),
@@ -738,7 +651,7 @@ do
 						desc = L["Text position"],
 						get = get,
 						set = function(info, v)
-							db.profile.julienne.textPosition = v
+							db.profile.bleeder.textPosition = v
 							self:ApplySettings()
 						end,
 						values = textPosition,
@@ -763,9 +676,9 @@ do
 						type = 'select',
 						name = L["Text font"],
 						desc = L["Text font"],
-						get = function(info) return GetLSMIndex("font", db.profile.julienne.textFont) end,
+						get = function(info) return GetLSMIndex("font", db.profile.bleeder.textFont) end,
 						set = function(info, v)
-							db.profile.julienne.textFont = Media:List("font")[v]
+							db.profile.bleeder.textFont = Media:List("font")[v]
 							self:ApplySettings()
 						end,
 						values = Media:List('font'),

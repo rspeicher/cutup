@@ -2,20 +2,16 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 
 --[[
 Name: Cutup_LightFingers
-Revision: $Revision$
+Revision: $Revision: 76207 $
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that switches to Auto Loot when Pick Pocket is cast.
+
+You got light fingers, Everett. Gopher?
 ]]
 
-local Cutup = Cutup
-if Cutup:HasModule('LightFingers') then
-	return
-end
-
-local L = AceLibrary("AceLocale-2.2"):new("Cutup")
-
-local CutupLightFingers = Cutup:NewModule('LightFingers')
-local self = CutupLightFingers
+local mod = Cutup:NewModule("LightFingers", nil, "AceEvent-3.0", "AceTimer-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale("Cutup")
+local self = mod
 
 local spellInfo = GetSpellInfo(921) -- Pick Pocket
 
@@ -23,14 +19,14 @@ local spellInfo = GetSpellInfo(921) -- Pick Pocket
 -- Initialization                                                            --
 -------------------------------------------------------------------------------
 
-function CutupLightFingers:OnInitialize()
+function mod:OnInitialize()
 end
 
-function CutupLightFingers:OnEnable()
-	self:RegisterEvent("UNIT_SPELLCAST_SENT")
+function mod:OnEnable()
+	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 end
 
-function CutupLightFingers:OnDisable()
+function mod:OnDisable()
 end
 
 -------------------------------------------------------------------------------
@@ -40,35 +36,16 @@ do
 	local current = nil
 	local function restore()
 		SetAutoLootDefault(current)
+		current = nil
 	end
 
-	function CutupLightFingers:UNIT_SPELLCAST_SENT(p, spell, rank, target)
-		if spell == spellInfo then
-			current = GetAutoLootDefault()
+	function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
+		if unit == "player" and spell == spellInfo then
+			if current == nil then
+				current = GetAutoLootDefault()
+			end
 			SetAutoLootDefault(1)
-			self:ScheduleEvent(restore, 1)
+			self:ScheduleTimer(restore, 1)
 		end
 	end
-end
-
-do
-	Cutup.options.args.LightFingers = {
-		type = 'group',
-		name = L["LightFingers"],
-		desc = L["Automatic Pick Pocket"],
-		args = {
-			toggle = {
-				type = 'toggle',
-				name = L["Enable"],
-				desc = L["Enable"],
-				get = function()
-					return Cutup:IsModuleActive('LightFingers')
-				end,
-				set = function(v)
-					Cutup:ToggleModuleActive('LightFingers', v)
-				end,
-				order = 100,
-			},
-		},
-	}
 end

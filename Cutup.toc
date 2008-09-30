@@ -1,6 +1,6 @@
 ## Interface: 20400
 
-## Title: Cutup |cff7fff7f -Ace2-|r
+## Title: Cutup
 ## Notes: A collection of Rogue modules.
 ## Author: tsigo
 ## X-Credits: tsigo, Rabbit, Kergoth
@@ -9,8 +9,8 @@
 ## X-AceForum: 5366
 ## X-RelSite-WoWI: 7214
 
-## OptionalDeps: LibSharedMedia-2.0, SharedMedia-2.0
-## X-Embeds: Ace2, PaintChipsLib, CandyBar, LibSharedMedia-2.0
+## OptionalDeps: Ace3, LibSharedMedia-3.0, LibBars-1.0
+## X-Embeds: Ace3, LibSharedMedia-3.0, LibBars-1.0
 
 ## SavedVariables: CutupDB
 

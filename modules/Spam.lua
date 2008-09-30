@@ -2,47 +2,47 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 
 --[[
 Name: Cutup_Spam
-Revision: $Revision$
+Revision: $Revision: 73523 $
 Author(s): tsigo (tsigo@eqdkp.com)
 Inspired By: RogueSpam by Allara (http://www.curse-gaming.com/en/wow/addons-924-1-roguespam.html)
 Description: A module for Cutup that blocks repeated Rogue-specific error messages.
 ]]
 
-local Cutup = Cutup
-if Cutup:HasModule('Spam') then
-	return
-end
-
-local L = AceLibrary("AceLocale-2.2"):new("Cutup")
-
-local CutupSpam = Cutup:NewModule('Spam')
-local self = CutupSpam
-
+local mod = Cutup:NewModule("Spam", nil, "AceHook-3.0")
+local L = LibStub("AceLocale-3.0"):GetLocale("Cutup")
+local self = mod
 local db
 
+local defaults = {
+	profile = {
+		spam = {
+			notready   = true,	-- Ability is not ready yet.
+			energy     = true,	-- Not enough energy
+			notarget   = true,	-- There is nothing to attack.
+			combo      = true,	-- That ability requires combo points
+			dead       = true,	-- Your target is dead.
+			inprogress = true,	-- Another action is in progress
+		}
+	}
+}
 -------------------------------------------------------------------------------
 -- Initialization                                                            --
 -------------------------------------------------------------------------------
 
-function CutupSpam:OnInitialize()
-	db = Cutup:AcquireDBNamespace('Spam')
+function mod:OnInitialize()
+	db = LibStub("AceDB-3.0"):New("CutupDB", nil, "Default")
 	self.db = db
 	
-	Cutup:RegisterDefaults('Spam', 'profile', {
-		notready   = true,	-- Ability is not ready yet.
-		energy     = true,	-- Not enough energy
-		notarget   = true,	-- There is nothing to attack.
-		combo      = true,	-- That ability requires combo points
-		dead       = true,	-- Your target is dead.
-		inprogress = true,	-- Another action is in progress
-	})	
+	self.db:RegisterDefaults(defaults)
+	
+	self:SetEnabledState(false)
 end
 
-function CutupSpam:OnEnable()
-	self:Hook("UIErrorsFrame_OnEvent", true)
+function mod:OnEnable()
+	self:RawHook("UIErrorsFrame_OnEvent", true)
 end
 
-function CutupSpam:OnDisable()
+function mod:OnDisable()
 	self:UnhookAll()
 end
 
@@ -50,96 +50,93 @@ end
 -- Addon Methods                                                             --
 -------------------------------------------------------------------------------
 
-function CutupSpam:UIErrorsFrame_OnEvent(event, msg, ...)
-	if Cutup:IsModuleActive('Spam') then
-		local opt = Cutup.options.args.Spam
-		for k, v in pairs(opt.args) do
-			if k ~= 'toggle' and self.db.profile[k] and msg == v.desc then
+function mod:UIErrorsFrame_OnEvent(event, msg, r, g, b)
+	if event ~= "UI_ERROR_MESSAGE" then
+		self.hooks["UIErrorsFrame_OnEvent"](event, message, r, g, b)
+	end
+
+	if self:IsEnabled() then
+		local opt = Cutup.options.args.Spam.args
+		for k, v in pairs(opt) do
+			if k ~= 'desc' and db.profile.spam[k] and msg == v.name then
 				return
 			end
 		end
 	end
 	
-	self.hooks.UIErrorsFrame_OnEvent(event, msg, ...)
+	self.hooks["UIErrorsFrame_OnEvent"](event, msg, r, g, b)
 end
 
 do
-	local function set(field, value)
-		db.profile[field] = value
+	local function set(t, value)
+		db.profile.spam[t[#t]] = value
 	end
-	local function get(field)
-		return db.profile[field]
+	local function get(t)
+		return db.profile.spam[t[#t]]
 	end
 	Cutup.options.args.Spam = {
 		type = 'group',
 		name = L["Spam"],
-		desc = L["Block repeated Rogue-specific error messages"],
+		desc = L["Spam_Desc"],
+		icon = "Interface\\Icons\\INV_Shield_04", -- FIXME: Does nothing?
+		cmdHidden = true,
+		disabled = function() return not self:IsEnabled() end,
 		args = {
-			toggle = {
-				type = 'toggle',
-				name = L["Enable"],
-				desc = L["Enable"],
-				get = function()
-					return Cutup:IsModuleActive('Spam')
-				end,
-				set = function(v)
-					Cutup:ToggleModuleActive('Spam', v)
-				end,
-				order = 100,
+			desc = {
+				type = 'description',
+				name = "  " .. L["Spam_Desc"] .. "\n\n",
+				order = 1,
+				cmdHidden = true,
+				image = "Interface\\Icons\\INV_Shield_04",
+				imageWidth = 16, imageHeight = 16,
 			},
 			notready = {
 				type = 'toggle',
 				name = ERR_ABILITY_COOLDOWN,
-				desc = ERR_ABILITY_COOLDOWN,
 				get = get,
 				set = set,
-				passValue = 'notready',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 			energy = {
 				type = 'toggle',
 				name = ERR_OUT_OF_ENERGY,
-				desc = ERR_OUT_OF_ENERGY,
 				get = get,
 				set = set,
-				passValue = 'energy',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 			notarget = {
 				type = 'toggle',
 				name = ERR_NO_ATTACK_TARGET,
-				desc = ERR_NO_ATTACK_TARGET,
 				get = get,
 				set = set,
-				passValue = 'notarget',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 			combo = {
 				type = 'toggle',
 				name = SPELL_FAILED_NO_COMBO_POINTS,
-				desc = SPELL_FAILED_NO_COMBO_POINTS,
 				get = get,
 				set = set,
-				passValue = 'combo',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 			dead = {
 				type = 'toggle',
 				name = SPELL_FAILED_TARGETS_DEAD,
-				desc = SPELL_FAILED_TARGETS_DEAD,
 				get = get,
 				set = set,
-				passValue = 'dead',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 			inprogress = {
 				type = 'toggle',
 				name = SPELL_FAILED_SPELL_IN_PROGRESS,
-				desc = SPELL_FAILED_SPELL_IN_PROGRESS,
 				get = get,
 				set = set,
-				passValue = 'inprogress',
-				order = 101,
+				order = 4,
+				width = "full",
 			},
 		}
 	}
