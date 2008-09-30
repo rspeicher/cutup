@@ -15,5 +15,4 @@
 	<Include file="libs\AceHook-3.0\AceHook-3.0.xml"/>
 	<Include file="libs\AceDBOptions-3.0\AceDBOptions-3.0.xml"/>
 	<Include file="libs\LibSharedMedia-3.0\lib.xml"/>
-	<Include file="libs\LibBars-1.0\lib.xml" />
 </Ui>
