@@ -107,7 +107,7 @@ end
 function mod:OnEnable()
 	-- Rupture / Combo Point detection
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	self:RegisterEvent("PLAYER_COMBO_POINTS")
+	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	
 	self.locked = locked
@@ -329,14 +329,16 @@ function mod:PLAYER_TARGET_CHANGED()
 	
 	if curGUID ~= lastGUID then
 		lastGUID = curGUID
-		self:PLAYER_COMBO_POINTS()
+		self:UNIT_COMBO_POINTS(nil, "player")
 	end
 	
 	return
 end
 
-function mod:PLAYER_COMBO_POINTS()
-	combos = GetComboPoints()
+function mod:UNIT_COMBO_POINTS(event, unit)
+	if unit ~= "player" then return end
+
+	combos = GetComboPoints("player")
 	local duration = self:CurrentDuration(combos)
 	rupBar2:SetValue(duration / maxTime)
 	

@@ -2,14 +2,13 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 
 --[[
 Name: Cutup
-Revision: $Revision: 74678 $
+Revision: $Revision: 82096 $
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A collection of Rogue modules.
 Inspired By: Modular design of Quartz.
 ]]
 
 local AceConfig = LibStub("AceConfigDialog-3.0")
-local Media = LibStub("LibSharedMedia-3.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("Cutup")
 
 Cutup = LibStub("AceAddon-3.0"):NewAddon("Cutup", "AceEvent-3.0", "AceConsole-3.0")

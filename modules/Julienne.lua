@@ -55,7 +55,7 @@ local UnitGUID = _G.UnitGUID
 
 -- Settings/infos
 local maxTime, combos = 0, 0
-local improvedRank, improved = nil, { 0, 0.15, 0.30, 0.45 } -- Improved Slice and Dice modifiers
+local improvedRank, improved = nil, { 0, 0.25, 0.50 } -- Improved Slice and Dice modifiers
 local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
 local netherbladeSet = { 29044, 29045, 29046, 29047, 29048 }
 local resetValues = true -- Terrible hack to fix a display issue
@@ -110,7 +110,7 @@ end
 function mod:OnEnable()
 	-- Slice and Dice / Combo Point detection
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-	self:RegisterEvent("PLAYER_COMBO_POINTS")
+	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	
 	-- Netherblade bonus inventory scanning
@@ -416,14 +416,16 @@ function mod:PLAYER_TARGET_CHANGED()
 	
 	if curGUID ~= lastGUID then
 		lastGUID = curGUID
-		self:PLAYER_COMBO_POINTS()
+		self:UNIT_COMBO_POINTS(nil, "player")
 	end
 	
 	return
 end
 
-function mod:PLAYER_COMBO_POINTS()
-	combos = GetComboPoints()
+function mod:UNIT_COMBO_POINTS(event, unit)
+	if unit ~= "player" then return end
+
+	combos = GetComboPoints("player")
 	local duration = self:CurrentDuration(combos)
 	sndBar2:SetValue(duration / maxTime)
 	
