@@ -61,6 +61,7 @@ local netherbladeSet = { 29044, 29045, 29046, 29047, 29048 }
 local resetValues = true -- Terrible hack to fix a display issue
 local spellInfo = GetSpellInfo(6774) -- Slice and Dice (Rank 2)
 local lastGUID = nil
+local minDuration = 9 -- SnD at 1 combo point
 
 local function OnUpdate()
 	if self.running then
@@ -117,6 +118,11 @@ function mod:OnEnable()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("PLAYER_LEAVING_WORLD")
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
+	
+	-- Glyph of Slice and Dice scanning
+	self:RegisterEvent("GLYPH_ADDED", 'ScanGlyph')
+	self:RegisterEvent("GLYPH_REMOVED", 'ScanGlyph')
+	self:ScanGlyph()
 	
 	-- Improved Slice and Dice scanning
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
@@ -301,6 +307,7 @@ function mod:TestBar()
 
 	self:Print("Netherblade bonus:", netherbladeBonus)
 	self:Print("Talent rank:", improvedRank)
+	self:Print("Minimum duration: ", minDuration)
 	
 	sndBar:SetValue(0)
 	sndBar2:SetValue(0)
@@ -361,6 +368,33 @@ function mod:ScanTalent()
 	
 	return improvedRank
 end
+function mod:ScanGlyph()
+	local tt = CreateFrame("GameTooltip", "JulienneTip", UIParent, "GameTooltipTemplate")
+	tt:SetOwner(WorldFrame, "ANCHOR_NONE")
+	
+	for i = 1, 10 do
+		tt:SetGlyph(i)
+		local text = getglobal("JulienneTipTextLeft1"):GetText()
+		if text:find(spellInfo) then
+			minDuration = 12
+			break
+		end
+	end
+	
+	--[[ This would have worked if the Slice and Dice glyph updated the spell tooltip like the Renew glyph did!
+	for i = 1, 50 do
+		local spell, rank = GetSpellName(i, BOOKTYPE_SPELL)
+		if spell and spell == spellInfo then
+			tt:SetSpell(i, BOOKTYPE_SPELL)
+			local text = getglobal("JulienneTipTextLeft" .. tt:NumLines()):GetText()
+			minDuration = select(3, string.find(text, L["1 point  : (%d) seconds"]))
+			break
+		end
+	end
+	]]
+	
+	tt = nil
+end
 
 -- ---------------------
 -- Timer calculation
@@ -380,7 +414,7 @@ function mod:CurrentDuration(combos)
 	local bonus = ((netherbladeBonus) and 3 or 0)
 	
 	-- Netherblade bonus is applied after Combo modifier, before Talent modifier
-	value = (9 + (combos - 1) * 3) + bonus
+	value = (minDuration + (combos - 1) * 3) + bonus
 	value = value + (value * improved[improvedRank + 1])
 	
 	return value
