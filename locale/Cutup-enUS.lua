@@ -12,6 +12,8 @@ L["Toggle %s"] = true
 -- Module names and descriptions
 L["Bleeder"] = true
 L["Bleeder_Desc"] = "Rupture timer"
+L["Glutton"] = true
+L["Glutton_Desc"] = "Hunger For Blood timer"
 L["Julienne"] = true
 L["Julienne_Desc"] = "Slice and Dice timer"
 L["LightFingers"] = true
