@@ -213,13 +213,13 @@ function mod:ApplySettings()
 		-- rupTimeText, countdown timer text
 		rupTimeText:ClearAllPoints()
 		if db.textPosition == 1 then -- LEFT
-			rupTimeText:SetPoint('RIGHT', rupParent, 'LEFT')
+			rupTimeText:SetPoint('LEFT', rupParent, 'LEFT', 5, 0)
 			rupTimeText:SetJustifyH("LEFT")
 		elseif db.textPosition == 2 then -- CENTER
 			rupTimeText:SetPoint('CENTER', rupParent, 'CENTER')
 			rupTimeText:SetJustifyH("CENTER")
 		elseif db.textPosition == 3 then -- RIGHT
-			rupTimeText:SetPoint('LEFT', rupParent, 'RIGHT')
+			rupTimeText:SetPoint('RIGHT', rupParent, 'RIGHT', -5, 0)
 			rupTimeText:SetJustifyH("RIGHT")
 		end
 		rupTimeText:SetFont(Media:Fetch('font', db.textFont), db.textSize)

@@ -230,13 +230,13 @@ function mod:ApplySettings()
 		-- sndTimeText, countdown timer text
 		sndTimeText:ClearAllPoints()
 		if db.textPosition == 1 then -- LEFT
-			sndTimeText:SetPoint('RIGHT', sndParent, 'LEFT')
+			sndTimeText:SetPoint('LEFT', sndParent, 'LEFT', 5, 0)
 			sndTimeText:SetJustifyH("LEFT")
 		elseif db.textPosition == 2 then -- CENTER
 			sndTimeText:SetPoint('CENTER', sndParent, 'CENTER')
 			sndTimeText:SetJustifyH("CENTER")
 		elseif db.textPosition == 3 then -- RIGHT
-			sndTimeText:SetPoint('LEFT', sndParent, 'RIGHT')
+			sndTimeText:SetPoint('RIGHT', sndParent, 'RIGHT', -5, 0)
 			sndTimeText:SetJustifyH("RIGHT")
 		end
 		sndTimeText:SetFont(Media:Fetch('font', db.textFont), db.textSize)
