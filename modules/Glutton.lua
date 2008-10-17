@@ -279,14 +279,11 @@ end
 -- ---------------------
 
 function mod:ScanTalent()
-	self:Print("ScanTalent()")
 	local talent, _, _, _, rank = GetTalentInfo(1, 27)
 	
 	if rank == 0 then
-		self:Print("Rank 0")
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	else
-		self:Print("Rank " .. rank)
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	end
 	
