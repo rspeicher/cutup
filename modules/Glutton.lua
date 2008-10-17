@@ -46,6 +46,7 @@ local locked = true
 local maxTime = 30
 local stackCount = 0
 local hunBar, hunTimeText, hunParent, db
+local hunRank = nil
 
 -- Localized functions
 local GetTime = _G.GetTime
@@ -98,6 +99,7 @@ end
 
 function mod:OnEnable()
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
 	playerName = UnitName('player')
 	
@@ -122,9 +124,6 @@ function mod:OnEnable()
 		hunParent:Hide()
 	end
 	self:ApplySettings()
-	
-	-- This will register our events depending on whether or not we've got the talent	
-	self:ScanTalent()
 end
 
 function mod:OnDisable()
@@ -280,16 +279,25 @@ end
 -- ---------------------
 
 function mod:ScanTalent()
+	self:Print("ScanTalent()")
 	local talent, _, _, _, rank = GetTalentInfo(1, 27)
 	
 	if rank == 0 then
+		self:Print("Rank 0")
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	else
+		self:Print("Rank " .. rank)
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	end
+	
+	hunRank = rank
 end
 
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
+	if hunRank == nil then
+		self:ScanTalent()
+	end
+	
 	-- Event wasn't from us or to us, or event isn't one we care about
 	if (srcName ~= playerName and dstName ~= playerName) or spellId ~= 51662 then
 		return
