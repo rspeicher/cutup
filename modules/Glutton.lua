@@ -26,11 +26,9 @@ local defaults = {
 			
 			border    = 'None',
 			backColor = { 0, 0, 0, 1 },
-			stackColors = {
-				{ 1, 0, 0.1, 0.8 },
-				{ 0.1, 1, 0, 0.8 },
-				{ 0, 0.1, 1, 0.8 },
-			},
+			stackColor1 = { 255/255, 66/255, 42/255, 0.8 },
+			stackColor2 = { 195/255, 252/255, 0/255, 0.8 },
+			stackColor3 = { 34/255, 250/255, 42/255, 0.8 },
 			
 			textShow     = true,
 			textPosition = 2,
@@ -46,6 +44,7 @@ local defaults = {
 -- Frames
 local locked = true
 local maxTime = 30
+local stackCount = 0
 local hunBar, hunTimeText, hunParent, db
 
 -- Localized functions
@@ -69,17 +68,10 @@ local function OnUpdate()
 	
 		if remainingTime == 0 then
 			self.running = false
-			
-			--[[
-			if combos > 0 then
-				local duration = self:CurrentDuration(combos)
-				hunTimeText:SetText(("%.1f"):format(duration))
-			end
-			]]
 		else
 			local perc = remainingTime / maxTime
 			hunBar:SetValue(perc)
-			--hunTimeText:SetText(("%.1f"):format(remainingTime))
+			hunTimeText:SetText(("%.1f"):format(remainingTime))
 		end
 	else
 		if hunParent:IsVisible() then
@@ -107,8 +99,6 @@ end
 function mod:OnEnable()
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	
-	self:ScanTalent() -- This will register our events depending on whether or not we've got the talent
-	
 	playerName = UnitName('player')
 	
 	self.locked = locked
@@ -132,6 +122,9 @@ function mod:OnEnable()
 		hunParent:Hide()
 	end
 	self:ApplySettings()
+	
+	-- This will register our events depending on whether or not we've got the talent	
+	self:ScanTalent()
 end
 
 function mod:OnDisable()
@@ -186,26 +179,26 @@ function mod:ApplySettings()
 		hunParent:SetAlpha(db.alpha)
 		hunParent:SetScale(db.scale / 100.0)
 		
-		-- hunBar, the actual Rupture timer
+		-- hunBar, the actual timer bar
 		hunBar:ClearAllPoints()
 		hunBar:SetPoint('CENTER', hunParent, 'CENTER')
 		hunBar:SetWidth(db.width)
 		hunBar:SetHeight(db.height)
 		hunBar:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
 		hunBar:SetMinMaxValues(0, 1)
-		hunBar:SetStatusBarColor(unpack(db.stackColors[1]))
+		--hunBar:SetStatusBarColor(unpack(db.stackColor1))
 		hunBar:Show()
 		
 		-- hunTimeText, countdown timer text
 		hunTimeText:ClearAllPoints()
 		if db.textPosition == 1 then -- LEFT
-			hunTimeText:SetPoint('RIGHT', hunParent, 'LEFT')
+			hunTimeText:SetPoint('LEFT', hunParent, 'LEFT', 5, 0)
 			hunTimeText:SetJustifyH("LEFT")
 		elseif db.textPosition == 2 then -- CENTER
 			hunTimeText:SetPoint('CENTER', hunParent, 'CENTER')
 			hunTimeText:SetJustifyH("CENTER")
 		elseif db.textPosition == 3 then -- RIGHT
-			hunTimeText:SetPoint('LEFT', hunParent, 'RIGHT')
+			hunTimeText:SetPoint('RIGHT', hunParent, 'RIGHT', -5, 0)
 			hunTimeText:SetJustifyH("RIGHT")
 		end
 		hunTimeText:SetFont(Media:Fetch('font', db.textFont), db.textSize)
@@ -267,7 +260,7 @@ function mod:StartBar(stacks)
 	self.running = true
 	
 	hunBar:SetValue(1)
-	hunBar:SetStatusBarColor(unpack(db.profile.glutton.stackColors[stacks]))
+	hunBar:SetStatusBarColor(unpack(db.profile.glutton['stackColor' .. stacks]))
 	hunParent:Show() -- Might not be shown if potentialShow is disabled
 end
 
@@ -290,10 +283,8 @@ function mod:ScanTalent()
 	local talent, _, _, _, rank = GetTalentInfo(1, 27)
 	
 	if rank == 0 then
-		--self:UnregisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-		self:UnegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	else
-		--self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 		self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	end
 end
@@ -301,15 +292,17 @@ end
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
 	-- Event wasn't from us or to us, or event isn't one we care about
 	if (srcName ~= playerName and dstName ~= playerName) or spellId ~= 51662 then
-		--(eventType ~= "SPELL_AURA_REFRESH" and eventType ~= "SPELL_CAST_SUCCESS" and eventType ~= "SPELL_AURA_APPLIED") then
 		return
 	end
 	
 	if eventType == "SPELL_AURA_APPLIED" then
-		self:StartBar(1)
+		stackCount = 1
+		self:StartBar(stackCount)
 	elseif eventType == "SPELL_AURA_REFRESH" then
+		self:StartBar(stackCount)
 	elseif eventType == "SPELL_AURA_APPLIED_DOSE" then
-		self:StartBar(select(2, ...))
+		stackCount = select(2, ...)
+		self:StartBar(stackCount)
 	elseif eventType == "SPELL_AURA_REMOVED" then
 		self.running = false
 		hunParent:Hide()
@@ -380,7 +373,7 @@ do
 				desc = 'Test the bar without actually having Hunger For Blood up.',
 				func = testbar,
 				order = 4,
-				--hidden = true,
+				hidden = true,
 			},
 			
 			frame = {
@@ -520,21 +513,33 @@ do
 				order = 200,
 				inline = true,
 				args = {
-					--[[
-					stack1Color = {
-					},
-					]]
-					--[[
-					mainColor = {
+					stackColor1 = {
 						type = 'color',
-						name = L["Main color"],
-						desc = L["Color of the main countdown bar."],
+						name = L["1 stack"],
+						desc = L["Color of the bar with 1 stack."],
+						get = getcolor, set = setcolor,
+						hasAlpha = true,
+						order = 201,
+						width = 'half',
+					},
+					stackColor2 = {
+						type = 'color',
+						name = L["%d stacks"]:format(2),
+						desc = L["Color of the bar with %d stacks."]:format(2),
 						get = getcolor, set = setcolor,
 						hasAlpha = true,
 						order = 202,
-						--width = "full",
+						width = 'half',
 					},
-					]]
+					stackColor3 = {
+						type = 'color',
+						name = L["%d stacks"]:format(3),
+						desc = L["Color of the bar with %d stacks."]:format(3),
+						get = getcolor, set = setcolor,
+						hasAlpha = true,
+						order = 203,
+						width = 'half',
+					},
 					blank1 = {
 						type = 'description',
 						name = '',
