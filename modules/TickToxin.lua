@@ -19,6 +19,7 @@ local poisons = {
 	5761,  -- Mind-numbing
 	13219, -- Wound
 }
+local playerName = nil
 
 local defaults = {
 	profile = {
@@ -37,10 +38,10 @@ local defaults = {
 			height = 14,
 			
 			poisons = {
-				[3408]  = { track = true, color = { 0, 0.35, 0, 1 } },
-				[2823]  = { track = true, color = { 0, 0.35, 0, 1 } },
-				[5761]  = { track = true, color = { 0, 0.35, 0, 1 } },
-				[13219] = { track = true, color = { 0, 0.35, 0, 1 } },
+				[GetSpellInfo(3408)]  = { track = true, color = { 0, 0.35, 0, 1 } },
+				[GetSpellInfo(2823)]  = { track = true, color = { 0, 0.35, 0, 1 } },
+				[GetSpellInfo(5761)]  = { track = true, color = { 0, 0.35, 0, 1 } },
+				[GetSpellInfo(13219)] = { track = true, color = { 0, 0.35, 0, 1 } },
 			},
 		}
 	}
@@ -73,6 +74,11 @@ end
 
 function mod:OnEnable()
 	self:RegisterEvent("PLAYER_LOGIN")
+	
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	
+	playerName = UnitName('player')
+	
 	self:CreateFrame()
 end
 
@@ -201,6 +207,41 @@ function mod:PLAYER_LOGIN()
 	self:SetAnchors(true)
 	self:UpdateDisplay()
 	self:UnregisterEvent("PLAYER_LOGIN")
+end
+
+function mod:ScanAura(spellId, spellName)
+	local name, rank, icon, count, debuffType, duration, expireTime, isMine
+	local color
+	
+	for i = 1, MAX_TARGET_DEBUFFS do
+		name, rank, icon, count, debuffType, duration, expireTime, isMine = UnitAura('target', i, 'HARMFUL|PLAYER')
+		
+		if name == spellName and isMine then
+			text = ((count ~= 0) and string.format("%s (%s)", name, count) or name)
+			color = db.profile.ticktoxin.poisons[name:gsub(" .I*V*I*$", "")].color
+			self:StartBar(spellId, text, duration, color)
+			
+			break;
+		end
+	end
+end
+
+function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
+	if (dstName ~= UnitName('target')) or not spellName:find(L["Poison"]) then
+		return
+	end
+	
+	if eventType == "SPELL_AURA_APPLIED" and srcName == playerName then
+		self:ScanAura(spellId, spellName)
+	elseif eventType == "SPELL_AURA_APPLIED_DOSE" then -- DOSE doesn't have a srcName, for some reason
+		self:ScanAura(spellId, spellName)
+	elseif eventType == "SPELL_AURA_REFRESH" and srcName == playerName  then
+		self:ScanAura(spellId, spellName)
+	elseif eventType == "SPELL_AURA_REMOVED" and srcName == playerName then
+		self:SpellToggle(spellId, false)
+	end
+	
+	return
 end
 
 -- ---------------------
@@ -434,6 +475,7 @@ do
 	for k, v in pairs(poisons) do
 		local name, rank, icon = GetSpellInfo(v)
 		local strid = tostring(v)
+		local spellName = GetSpellInfo(v)
 		
 		-- Header
 		args[strid .. "d"] = {
@@ -448,9 +490,9 @@ do
 			type = "toggle",
 			name = L["Track"],
 			desc = L["Track %s"]:format(name),
-			get = function(info) return db.profile.ticktoxin.poisons[v].track end,
+			get = function(info) return db.profile.ticktoxin.poisons[spellName].track end,
 			set = function(info, val)
-				db.profile.ticktoxin.poisons[v].track = val
+				db.profile.ticktoxin.poisons[spellName].track = val
 				self:SpellToggle(v, val)
 			end,
 			order = i + 1,
@@ -460,9 +502,9 @@ do
 		args[strid .. "c"] = {
 			type = "color",
 			name = L["Color"],
-			get = function(info) return unpack(db.profile.ticktoxin.poisons[v].color) end,
+			get = function(info) return unpack(db.profile.ticktoxin.poisons[spellName].color) end,
 			set = function(info, ...)
-				db.profile.ticktoxin.poisons[v].color = {...}
+				db.profile.ticktoxin.poisons[spellName].color = {...}
 			end,
 			hasAlpha = true,
 			order = i + 2,

@@ -70,6 +70,7 @@ L["Y Position"] = true
 	-- Module: Spam
 	
 	-- Module: TickToxin
+	L["Poison"] = true
 	L["Poisons"] = true
 	L["Grow Up"] = true
 	L["Grow bars upwards"] = true

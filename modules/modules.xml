@@ -5,5 +5,5 @@
 	<Script file="Julienne.lua"/>
 	<Script file="LightFingers.lua"/>
 	<Script file="Spam.lua"/>
-<!--<Script file="TickToxin.lua"/>-->
+	<Script file="TickToxin.lua"/>
 </Ui>
