@@ -35,16 +35,22 @@ end
 do
 	local current = nil
 	local function restore()
-		SetAutoLootDefault(current)
+		SetCVar("autoLootDefault", current)
 		current = nil
 	end
 
 	function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
 		if unit == "player" and spell == spellInfo then
 			if current == nil then
-				current = GetAutoLootDefault()
+				current = GetCVar("autoLootDefault")
 			end
-			SetAutoLootDefault(1)
+			
+			-- Already auto looting by default
+			if current == 1 then
+				return
+			end
+			
+			SetCVar("autoLootDefault", 1) 
 			self:ScheduleTimer(restore, 1)
 		end
 	end
