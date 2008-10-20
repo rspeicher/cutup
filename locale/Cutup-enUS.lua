@@ -70,6 +70,12 @@ L["Y Position"] = true
 	-- Module: Spam
 	
 	-- Module: TickToxin
-	L["Poison"] = true
-	L["Grow up"] = true
-	L["Add new bars above the anchor rather than below."] = true
+	L["Poisons"] = true
+	L["Grow Up"] = true
+	L["Grow bars upwards"] = true
+	L["Orientation"] = true
+	L["Left to Right"] = true
+	L["Right to Left"] = true
+	L["Track"] = true
+	L["Track %s"] = true
+	L["Color"] = true
