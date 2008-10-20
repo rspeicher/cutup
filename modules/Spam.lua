@@ -50,7 +50,7 @@ end
 -- Addon Methods                                                             --
 -------------------------------------------------------------------------------
 
-function mod:UIErrorsFrame_OnEvent(event, msg, r, g, b)
+function mod:UIErrorsFrame_OnEvent(obj, event, msg, r, g, b)
 	if event ~= "UI_ERROR_MESSAGE" then
 		self.hooks["UIErrorsFrame_OnEvent"](event, message, r, g, b)
 	end
@@ -64,7 +64,7 @@ function mod:UIErrorsFrame_OnEvent(event, msg, r, g, b)
 		end
 	end
 	
-	self.hooks["UIErrorsFrame_OnEvent"](event, msg, r, g, b)
+	self.hooks["UIErrorsFrame_OnEvent"](obj, event, msg, r, g, b)
 end
 
 do
