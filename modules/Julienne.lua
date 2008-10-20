@@ -375,7 +375,7 @@ function mod:ScanGlyph()
 	for i = 1, 10 do
 		tt:SetGlyph(i)
 		local text = getglobal("JulienneTipTextLeft1"):GetText()
-		if text:find(spellInfo) then
+		if text:lower():find(spellInfo:lower()) then
 			minDuration = 12
 			break
 		end
