@@ -85,19 +85,20 @@ end
 -- ---------------------
 
 function mod:Test()
-	mod:StartCooldown(L["TickToxin"] .. " 1", 27188, 45)
-	mod:StartCooldown(L["TickToxin"] .. " 2", 27186, 30)
+	for k, v in pairs(poisons) do
+		if db.profile.ticktoxin.poisons[v].track then
+			mod:StartBar(v, GetSpellInfo(v), 30, db.profile.ticktoxin.poisons[v].color)
+		end
+	end
 end
 
-function mod:StartCooldown(sender, spellId, cooldown)
-	local bar = barGroup:NewTimerBar((sender .. "_" .. spellId), sender, cooldown, cooldown, spellId)
-	bar.caster  = sender
+function mod:StartBar(spellId, text, duration, color)
+	local bar = barGroup:NewTimerBar(GetSpellInfo(spellId), text, duration, duration, spellId)
 	bar.spellId = spellId
 
-	local color = nil
 	if type(color) == "table" then
-		bar:SetColorAt(1.00, color.r, color.g, color.b, 1)
-		bar:SetColorAt(0.00, color.r, color.g, color.b, 1)
+		bar:SetColorAt(1.00, color[1], color[2], color[3], 1)
+		bar:SetColorAt(0.00, color[1], color[2], color[3], 1)
 	end
 end
 
@@ -105,12 +106,6 @@ function mod:CreateFrame()
 	barGroup = nil
 	
 	barGroup = self:NewBarGroup(L["TickToxin"], nil, self.db.profile.ticktoxin.width, self.db.profile.ticktoxin.height, "TickToxin_Anchor")
-	--[[
-	barGroup:SetColorAt(1.00, 1, 0, 0, 1)
-	barGroup:SetColorAt(0.66, 1, 1, 0, 1)
-	barGroup:SetColorAt(0.33, 0, 1, 1, 1)
-	barGroup:SetColorAt(0.00, 0, 0, 1, 1)
-	]]
 	barGroup:SetFlashPeriod(0)
 	barGroup:SetSortFunction(sortFunc)
 	
@@ -169,11 +164,33 @@ end
 function mod:AnchorClicked(cbk, group, button)
 	if button == "RightButton" then
 		Cutup:ShowConfig()
+		self:Test()
 	end
 end
 
 function mod:AnchorMoved(cbk, group, x, y)
 	self:SetAnchors()
+end
+
+function mod:SpellToggle(spell, val)
+	if val == true then return end -- Don't need to do anything when the spell's enabled
+	
+	-- Remove any running bars that represent the spell we just disabled
+	local bars = barGroup:GetBars()
+	local removed = false
+	if type(bars) == "table" then
+		for k, v in pairs(bars) do
+			if spell == v.spellId then
+				barGroup:RemoveBar(k)
+				removed = true
+			end
+		end
+	end
+	
+	-- A bar was removed, force our anchor to update so that the gap gets removed
+	if removed then
+		self:UpdateDisplay()
+	end
 end
 
 -- ---------------------
@@ -250,13 +267,6 @@ do
 				cmdHidden = true,
 				image = "Interface\\Icons\\Ability_Rogue_DualWeild",
 				imageWidth = 16, imageHeight = 16,
-			},
-			test = {
-				type = "execute",
-				name = L["Test"],
-				desc = L["Test"],
-				func = mod.Test,
-				order = 2,
 			},
 			display = {
 				type = "group",
@@ -441,6 +451,7 @@ do
 			get = function(info) return db.profile.ticktoxin.poisons[v].track end,
 			set = function(info, val)
 				db.profile.ticktoxin.poisons[v].track = val
+				self:SpellToggle(v, val)
 			end,
 			order = i + 1,
 			width = "half",
