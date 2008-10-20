@@ -47,7 +47,7 @@ local defaults = {
 
 -- Frames
 local locked = true
-local rupBar, rupBar2, rupTimeText, rupParent, db
+local rupBar, rupBar2, rupTimeText, rupParent
 
 -- Localized functions
 local GetTime = _G.GetTime

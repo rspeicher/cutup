@@ -45,7 +45,7 @@ local defaults = {
 local locked = true
 local maxTime = 30
 local stackCount = 0
-local hunBar, hunTimeText, hunParent, db
+local hunBar, hunTimeText, hunParent
 local hunRank = nil
 
 -- Localized functions

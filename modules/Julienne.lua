@@ -47,7 +47,7 @@ local defaults = {
 
 -- Frames
 local locked = true
-local sndBar, sndBar2, sndTimeText, sndParent, db
+local sndBar, sndBar2, sndTimeText, sndParent
 
 -- Localized functions
 local GetTime = _G.GetTime
