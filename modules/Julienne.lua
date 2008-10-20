@@ -110,7 +110,7 @@ end
 
 function mod:OnEnable()
 	-- Slice and Dice / Combo Point detection
-	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+	self:RegisterEvent("UNIT_AURA") 
 	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	
@@ -478,15 +478,16 @@ function mod:UNIT_COMBO_POINTS(event, unit)
 	self:CheckVisibility(true)
 end
 
-function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
-	if unit == 'player' and spell == spellInfo then
-		self.startTime = GetTime()
-		self.endTime = self.startTime + self:CurrentDuration(combos)
+function mod:UNIT_AURA(event, unit)
+	if unit ~= "player" then return	end
+	
+	local name, _, _, _, _, duration, endTime = UnitBuff(unit, spellInfo)
+	if name then
+		self.startTime = endTime - duration
+		self.endTime = endTime
 		self.running = true
 		sndParent:Show() -- Might not be shown if potentialShow is disabled
 	end
-	
-	return
 end
 
 do
