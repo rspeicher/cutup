@@ -92,8 +92,9 @@ end
 
 function mod:Test()
 	for k, v in pairs(poisons) do
-		if db.profile.ticktoxin.poisons[v].track then
-			mod:StartBar(v, GetSpellInfo(v), 30, db.profile.ticktoxin.poisons[v].color)
+		local spell = GetSpellInfo(v)
+		if db.profile.ticktoxin.poisons[spell].track then
+			mod:StartBar(v, spell, 30, db.profile.ticktoxin.poisons[spell].color)
 		end
 	end
 end
@@ -217,11 +218,16 @@ function mod:ScanAura(spellId, spellName)
 		name, rank, icon, count, debuffType, duration, expireTime, isMine = UnitAura('target', i, 'HARMFUL|PLAYER')
 		
 		if name == spellName and isMine then
-			text = ((count ~= 0) and string.format("%s (%s)", name, count) or name)
-			color = db.profile.ticktoxin.poisons[name:gsub(" .I*V*I*$", "")].color
-			self:StartBar(spellId, text, duration, color)
+			local shortName = name:gsub(" .I*V*I*$", "")
 			
-			break;
+			if db.profile.ticktoxin.poisons[shortName].track then
+				color = db.profile.ticktoxin.poisons[shortName].color
+				text = ((count ~= 0) and string.format("%s (%s)", name, count) or name)
+				
+				self:StartBar(spellId, text, duration, color)
+			end
+			
+			return
 		end
 	end
 end
