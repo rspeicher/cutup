@@ -84,6 +84,13 @@ end
 
 function mod:OnDisable()
 	self:UnregisterAllEvents()
+	
+	local bars = barGroup:GetBars()
+	if type(bars) == "table" then
+		for k, v in pairs(bars) do
+			barGroup:RemoveBar(k)
+		end
+	end
 end
 
 -- ---------------------
@@ -110,9 +117,10 @@ function mod:StartBar(spellId, text, duration, color)
 end
 
 function mod:CreateFrame()
-	barGroup = nil
 	
-	barGroup = self:NewBarGroup(L["TickToxin"], nil, self.db.profile.ticktoxin.width, self.db.profile.ticktoxin.height, "TickToxin_Anchor")
+	if barGroup == nil then	
+		barGroup = self:NewBarGroup(L["TickToxin"], nil, self.db.profile.ticktoxin.width, self.db.profile.ticktoxin.height, "TickToxin_Anchor")
+	end
 	barGroup:SetFlashPeriod(0)
 	barGroup:SetSortFunction(sortFunc)
 	
