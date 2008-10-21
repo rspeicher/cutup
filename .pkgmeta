@@ -15,4 +15,5 @@ externals:
     libs/AceTimer-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceTimer-3.0
     libs/AceHook-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceHook-3.0
     libs/AceDBOptions-3.0: svn://svn.wowace.com/wow/ace3/mainline/trunk/AceDBOptions-3.0
-    libs/LibSharedMedia-3.0: svn://svn.wowace.com/wow/lib-shared-media-3-0/mainline/trunk/LibSharedMedia-3.0
+	libs/LibSharedMedia-3.0: svn://svn.wowace.com/wow/libsharedmedia-3-0/mainline/trunk/LibSharedMedia-3.0
+	libs/LibBars-1.0: svn://svn.wowace.com/wow/libbars-1-0/mainline/trunk/LibBars-1.0
