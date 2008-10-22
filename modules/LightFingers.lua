@@ -27,6 +27,7 @@ function mod:OnEnable()
 end
 
 function mod:OnDisable()
+	self:UnregisterAllEvents()
 end
 
 -------------------------------------------------------------------------------
