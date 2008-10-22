@@ -2,7 +2,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 
 --[[
 Name: Cutup
-Revision: $Revision: 82096 $
+Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A collection of Rogue modules.
 Inspired By: Modular design of Quartz.

@@ -2,7 +2,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 
 --[[
 Name: Cutup_LightFingers
-Revision: $Revision: 76207 $
+Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that switches to Auto Loot when Pick Pocket is cast.
 

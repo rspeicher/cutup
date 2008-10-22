@@ -2,7 +2,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 
 --[[
 Name: Cutup_Glutton
-Revision: $Revision: 66 $
+Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times Hunger for Blood.
 ]]

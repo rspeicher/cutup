@@ -2,7 +2,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 
 --[[
 Name: Cutup_Spam
-Revision: $Revision: 73523 $
+Revision: $Revision$
 Author(s): tsigo (tsigo@eqdkp.com)
 Inspired By: RogueSpam by Allara (http://www.curse-gaming.com/en/wow/addons-924-1-roguespam.html)
 Description: A module for Cutup that blocks repeated Rogue-specific error messages.
