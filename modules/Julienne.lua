@@ -122,6 +122,7 @@ function mod:OnEnable()
 	-- Glyph of Slice and Dice scanning
 	self:RegisterEvent("GLYPH_ADDED", 'ScanGlyph')
 	self:RegisterEvent("GLYPH_REMOVED", 'ScanGlyph')
+	self:RegisterEvent("GLYPH_UPDATED", 'ScanGlyph')
 	self:ScanGlyph()
 	
 	-- Improved Slice and Dice scanning
@@ -369,31 +370,17 @@ function mod:ScanTalent()
 	return improvedRank
 end
 function mod:ScanGlyph()
-	local tt = CreateFrame("GameTooltip", "JulienneTip", UIParent, "GameTooltipTemplate")
-	tt:SetOwner(WorldFrame, "ANCHOR_NONE")
-	
-	for i = 1, 10 do
-		tt:SetGlyph(i)
-		local text = getglobal("JulienneTipTextLeft1"):GetText()
-		if text:lower():find(spellInfo:lower()) then
+	for i = 1, 6 do
+		local _, _, glyphSpell = GetGlyphSocketInfo(i)
+		
+		if glyphSpell == 57303 then
 			minDuration = 12
-			break
+			return
 		end
 	end
 	
-	--[[ This would have worked if the Slice and Dice glyph updated the spell tooltip like the Renew glyph did!
-	for i = 1, 50 do
-		local spell, rank = GetSpellName(i, BOOKTYPE_SPELL)
-		if spell and spell == spellInfo then
-			tt:SetSpell(i, BOOKTYPE_SPELL)
-			local text = getglobal("JulienneTipTextLeft" .. tt:NumLines()):GetText()
-			minDuration = select(3, string.find(text, L["1 point  : (%d) seconds"]))
-			break
-		end
-	end
-	]]
-	
-	tt = nil
+	minDuration = 9
+	return
 end
 
 -- ---------------------
