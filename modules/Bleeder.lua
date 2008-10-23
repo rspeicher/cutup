@@ -54,7 +54,7 @@ local GetTime = _G.GetTime
 local UnitGUID = _G.UnitGUID
 
 -- Settings/infos
-local maxTime, combos = 16, 0
+local minTime, maxTime, combos = 8, 16, 0
 local resetValues = true -- Terrible hack to fix a display issue
 local spellInfo = GetSpellInfo(26867) -- Rupture (Rank 7)
 local lastGUID = nil
@@ -109,6 +109,7 @@ function mod:OnEnable()
 	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	
 	self.locked = locked
 	self.startTime = 0
@@ -311,18 +312,40 @@ function mod:TestBar()
 end
 
 -- ---------------------
+-- Bonus scanning
+-- ---------------------
+
+function mod:ScanGlyph()
+	for i = 1, 6 do
+		local _, _, glyphSpell = GetGlyphSocketInfo(i)
+		
+		if glyphSpell == 56801 then
+			minTime, maxTime = 13, 21
+			return
+		end
+	end
+	
+	minTime, maxTime = 8, 16
+	return
+end
+
+-- ---------------------
 -- Timer calculation
 -- ---------------------
 
 function mod:CurrentDuration(combos)
 	if not combos or combos == 0 then return 0 end
 	
-	return 8 + ((combos - 1) * 2)
+	return minTime + ((combos - 1) * 2)
 end
 
 -- ---------------------
 -- Events
 -- ---------------------
+
+function mod:PLAYER_ENTERING_WORLD()
+	self:ScanGlyph()
+end
 
 function mod:PLAYER_TARGET_CHANGED()
 	local curGUID = UnitGUID("target")
