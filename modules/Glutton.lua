@@ -98,6 +98,7 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
+	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
@@ -275,7 +276,7 @@ function mod:TestBar()
 end
 
 -- ---------------------
--- Events
+-- Bonus scanning
 -- ---------------------
 
 function mod:ScanTalent()
@@ -290,11 +291,15 @@ function mod:ScanTalent()
 	hunRank = rank
 end
 
+-- ---------------------
+-- Events
+-- ---------------------
+
+function mod:PLAYER_ENTERING_WORLD()
+	self:ScanTalent()
+end
+
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
-	if hunRank == nil then
-		self:ScanTalent()
-	end
-	
 	-- Event wasn't from us or to us, or event isn't one we care about
 	if (srcName ~= playerName and dstName ~= playerName) or spellId ~= 51662 then
 		return
