@@ -123,7 +123,6 @@ function mod:OnEnable()
 	self:RegisterEvent("GLYPH_ADDED", 'ScanGlyph')
 	self:RegisterEvent("GLYPH_REMOVED", 'ScanGlyph')
 	self:RegisterEvent("GLYPH_UPDATED", 'ScanGlyph')
-	self:ScanGlyph()
 	
 	-- Improved Slice and Dice scanning
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
@@ -373,7 +372,7 @@ function mod:ScanGlyph()
 	for i = 1, 6 do
 		local _, _, glyphSpell = GetGlyphSocketInfo(i)
 		
-		if glyphSpell == 57303 then
+		if glyphSpell == 56810 then
 			minDuration = 12
 			return
 		end
@@ -420,6 +419,10 @@ end
 
 function mod:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
+	
+	self:ScanTalent()
+	self:ScanGlyph()
+	self:ScanNetherblade()
 end
 function mod:PLAYER_LEAVING_WORLD()
 	self:UnregisterEvent("UNIT_INVENTORY_CHANGED")
