@@ -241,7 +241,7 @@ function mod:ScanAura(spellId, spellName)
 end
 
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
-	if (dstName ~= UnitName('target')) or not spellName or not spellName:find(L["Poison"]) then
+	if (dstName ~= UnitName('target')) or type(spellName) ~= 'string' or not spellName:find(L["Poison"]) then
 		return
 	end
 	
