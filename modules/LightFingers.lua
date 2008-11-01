@@ -47,11 +47,12 @@ do
 			end
 			
 			-- Already auto looting by default
-			if current == 1 then
+			if current == '1' then
+				current = nil
 				return
 			end
 			
-			SetCVar("autoLootDefault", 1) 
+			SetCVar("autoLootDefault", '1') 
 			self:ScheduleTimer(restore, 1)
 		end
 	end
