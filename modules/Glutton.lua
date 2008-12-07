@@ -102,6 +102,9 @@ function mod:OnEnable()
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	
+	self:ScanTalent()
+	stackCount = select(4, UnitAura('player', spellInfo))
+	
 	playerName = UnitName('player')
 	
 	self.locked = locked
