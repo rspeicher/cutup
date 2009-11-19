@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 --[[
 Name: Cutup
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A collection of Rogue modules.
 Inspired By: Modular design of Quartz.
 ]]

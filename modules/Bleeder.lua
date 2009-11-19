@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_Bleeder
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times Rupture.
 Inspired by: Cutup_Julienne
 
@@ -54,10 +54,10 @@ local GetTime = _G.GetTime
 local UnitGUID = _G.UnitGUID
 
 -- Settings/infos
-local minTime, maxTime, combos = 8, 16, 0
+local minTime, maxTime, combos, rupCombos = 8, 16, 0, 0 
 local resetValues = true -- Terrible hack to fix a display issue
-local spellInfo = GetSpellInfo(26867) -- Rupture (Rank 7)
 local lastGUID = nil
+local playerName = nil
 
 local function OnUpdate()
 	if self.running then
@@ -106,11 +106,12 @@ end
 
 function mod:OnEnable()
 	-- Rupture / Combo Point detection
-	self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	
+	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	playerName = UnitName('player')
 	self.locked = locked
 	self.startTime = 0
 	self.endTime = 0
@@ -320,7 +321,7 @@ function mod:ScanGlyph()
 		local _, _, glyphSpell = GetGlyphSocketInfo(i)
 		
 		if glyphSpell == 56801 then
-			minTime, maxTime = 13, 21
+			minTime, maxTime = 12, 20
 			return
 		end
 	end
@@ -342,6 +343,9 @@ end
 -- ---------------------
 -- Events
 -- ---------------------
+function mod:ACTIVE_TALENT_GROUP_CHANGED()
+	self:ScanGlyph()
+end
 
 function mod:PLAYER_ENTERING_WORLD()
 	self:ScanGlyph()
@@ -362,6 +366,11 @@ function mod:UNIT_COMBO_POINTS(event, unit)
 	if unit ~= "player" then return end
 
 	combos = GetComboPoints("player")
+	
+	if combos > 0 then
+		rupCombos = combos
+	end
+	
 	local duration = self:CurrentDuration(combos)
 	rupBar2:SetValue(duration / maxTime)
 	
@@ -380,15 +389,24 @@ function mod:UNIT_COMBO_POINTS(event, unit)
 	self:CheckVisibility(true)
 end
 
-function mod:UNIT_SPELLCAST_SUCCEEDED(event, unit, spell)
-	if unit == 'player' and spell == spellInfo then
-		self.startTime = GetTime()
-		self.endTime = self.startTime + self:CurrentDuration(combos)
-		self.running = true
-		rupParent:Show() -- Might not be shown if potentialShow is disabled
+function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, destGUID, dstName, _, spellId, spellName, _, ...)
+	-- Event wasn't from us or to us, or event isn't one we care about
+	if srcName == playerName and spellId == 48672 then 
+		if eventType == "SPELL_CAST_SUCCESS" then
+			useableCombo = rupCombos
+		end
+		if eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH" then
+			rupCombos = 0
+			self.startTime = GetTime()
+			self.endTime = self.startTime + self:CurrentDuration(useableCombo)
+			self.running = true
+			rupParent:Show()
+		end
+		if eventType == "SPELL_AURA_REMOVED" and destGUI == lastGUID then
+			self.running = false
+			rupParent:Hide()
+		end
 	end
-	
-	return
 end
 
 do

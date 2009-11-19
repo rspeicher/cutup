@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" and (select(2, UnitClass("player"
 --[[
 Name: Cutup_Spam
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Inspired By: RogueSpam by Allara (http://www.curse-gaming.com/en/wow/addons-924-1-roguespam.html)
 Description: A module for Cutup that blocks repeated Rogue-specific error messages.
 ]]
@@ -39,7 +39,7 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
-	self:RawHook("UIErrorsFrame_OnEvent", true)
+	self:RawHookScript(UIErrorsFrame, "OnEvent", "UIErrorsFrame_OnEvent", true)
 end
 
 function mod:OnDisable()
@@ -50,21 +50,22 @@ end
 -- Addon Methods                                                             --
 -------------------------------------------------------------------------------
 
-function mod:UIErrorsFrame_OnEvent(obj, event, msg, r, g, b)
+function mod:UIErrorsFrame_OnEvent(frame, event, message, r, g, b)
 	if event ~= "UI_ERROR_MESSAGE" then
-		self.hooks["UIErrorsFrame_OnEvent"](event, message, r, g, b)
+		self.hooks[frame].OnEvent(frame, event, message, r, g, b)
+		return
 	end
 
 	if self:IsEnabled() then
 		local opt = Cutup.options.args.Spam.args
 		for k, v in pairs(opt) do
-			if k ~= 'desc' and db.profile.spam[k] and msg == v.name then
+			if k ~= 'desc' and db.profile.spam[k] and message == v.name then
 				return
 			end
 		end
 	end
 	
-	self.hooks["UIErrorsFrame_OnEvent"](obj, event, msg, r, g, b)
+	self.hooks[frame].OnEvent(frame, event, message, r, g, b)
 end
 
 do
@@ -78,7 +79,7 @@ do
 		type = 'group',
 		name = L["Spam"],
 		desc = L["Spam_Desc"],
-		icon = "Interface\\Icons\\INV_Shield_04", -- FIXME: Does nothing?
+		icon = "Interface\\Icons\\INV_Shield_04",
 		cmdHidden = true,
 		disabled = function() return not self:IsEnabled() end,
 		args = {

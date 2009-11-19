@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_TickToxin
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times poison applications.
 ]]
 
@@ -224,12 +224,11 @@ function mod:ScanAura(spellId, spellName)
 	
 	for i = 1, MAX_TARGET_DEBUFFS do
 		name, rank, icon, count, debuffType, duration, expireTime, isMine = UnitAura('target', i, 'HARMFUL|PLAYER')
-		
 		if name == spellName and isMine then
-			local shortName = name:gsub(" [XVI]*$", "")
+			local shortName = name:gsub(" .I*V*I*X*$", "")
 			
-			if db.profile.ticktoxin.poisons[shortName].track then
-				color = db.profile.ticktoxin.poisons[shortName].color
+			if self.db.profile.ticktoxin.poisons[shortName].track then
+				color = self.db.profile.ticktoxin.poisons[shortName].color
 				text = ((count ~= 0) and string.format("%s (%s)", name, count) or name)
 				
 				self:StartBar(spellId, text, duration, color)

@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_Julienne
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times Slice and Dice.
 Inspired by: Disco Dice, SliceWatcher, Quartz (code)
 
@@ -126,6 +126,7 @@ function mod:OnEnable()
 	
 	-- Improved Slice and Dice scanning
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 	
 	self.locked = locked
 	self.startTime = 0
@@ -416,6 +417,11 @@ end
 -- ---------------------
 -- Events
 -- ---------------------
+function mod:ACTIVE_TALENT_GROUP_CHANGED()
+	self:ScanTalent()
+	self:ScanGlyph()
+	self:ScanNetherblade()
+end
 
 function mod:PLAYER_ENTERING_WORLD()
 	self:RegisterEvent("UNIT_INVENTORY_CHANGED")
@@ -448,7 +454,6 @@ end
 
 function mod:UNIT_COMBO_POINTS(event, unit)
 	if unit ~= "player" then return end
-
 	combos = GetComboPoints("player")
 	local duration = self:CurrentDuration(combos)
 	sndBar2:SetValue(duration / maxTime)
@@ -477,6 +482,13 @@ function mod:UNIT_AURA(event, unit)
 		self.endTime = endTime
 		self.running = true
 		sndParent:Show() -- Might not be shown if potentialShow is disabled
+	else
+		if self.running then -- When some one would lose the SnD debuf before it would run out
+			self.startTime = 0
+			self.endTime  = 0
+			sndBar:SetValue(0)
+			self:UNIT_COMBO_POINTS(nil, "player") -- force resetting of txt etc
+		end
 	end
 end
 

@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_LightFingers
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that switches to Auto Loot when Pick Pocket is cast.
 
 You got light fingers, Everett. Gopher?
@@ -47,12 +47,11 @@ do
 			end
 			
 			-- Already auto looting by default
-			if current == '1' then
-				current = nil
+			if current == 1 then
 				return
 			end
 			
-			SetCVar("autoLootDefault", '1') 
+			SetCVar("autoLootDefault", 1) 
 			self:ScheduleTimer(restore, 1)
 		end
 	end

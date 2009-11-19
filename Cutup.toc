@@ -1,9 +1,9 @@
-## Interface: 30000
+## Interface: 30200
 
 ## Title: Cutup
 ## Notes: A collection of Rogue modules.
-## Author: tsigo
-## X-Credits: tsigo, Rabbit, Kergoth
+## Author: ColdDoT & tsigo
+## X-Credits: tsigo, ColdDoT, Rabbit, Kergoth
 ## X-Website: http://www.wowace.com/wiki/Cutup
 ## X-Category: Rogue
 ## X-AceForum: 5366

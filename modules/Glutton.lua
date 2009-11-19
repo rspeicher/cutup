@@ -3,7 +3,7 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_Glutton
 Revision: $Revision$
-Author(s): tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
 Description: A module for Cutup that times Hunger for Blood.
 ]]
 
@@ -26,9 +26,7 @@ local defaults = {
 			
 			border    = 'None',
 			backColor = { 0, 0, 0, 1 },
-			stackColor1 = { 255/255, 66/255, 42/255, 0.8 },
-			stackColor2 = { 195/255, 252/255, 0/255, 0.8 },
-			stackColor3 = { 34/255, 250/255, 42/255, 0.8 },
+			barColor = { 34/255, 250/255, 42/255, 0.8 },
 			
 			textShow     = true,
 			textPosition = 2,
@@ -43,8 +41,7 @@ local defaults = {
 
 -- Frames
 local locked = true
-local maxTime = 30
-local stackCount = 0
+local maxTime = 60
 local hunBar, hunTimeText, hunParent
 local hunRank = nil
 
@@ -55,7 +52,6 @@ local playerName = nil
 
 -- Settings/infos
 local resetValues = true -- Terrible hack to fix a display issue
-local spellInfo = GetSpellInfo(51662) -- Hunger for Blood
 
 local function OnUpdate()
 	if self.running then
@@ -101,9 +97,7 @@ function mod:OnEnable()
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	
-	self:ScanTalent()
-	stackCount = select(4, UnitAura('player', spellInfo))
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 	
 	playerName = UnitName('player')
 	
@@ -189,7 +183,7 @@ function mod:ApplySettings()
 		hunBar:SetHeight(db.height)
 		hunBar:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
 		hunBar:SetMinMaxValues(0, 1)
-		--hunBar:SetStatusBarColor(unpack(db.stackColor1))
+		hunBar:SetStatusBarColor(unpack(db.barColor))
 		hunBar:Show()
 		
 		-- hunTimeText, countdown timer text
@@ -257,13 +251,12 @@ function mod:CheckVisibility(perform)
 	return visible
 end
 
-function mod:StartBar(stacks)
+function mod:StartBar()
 	self.startTime = GetTime()
 	self.endTime = self.startTime + maxTime
 	self.running = true
-	
+
 	hunBar:SetValue(1)
-	hunBar:SetStatusBarColor(unpack(db.profile.glutton['stackColor' .. stacks]))
 	hunParent:Show() -- Might not be shown if potentialShow is disabled
 end
 
@@ -275,7 +268,7 @@ function mod:TestBar()
 	if not self:IsEnabled() then return end
 	
 	hunBar:SetValue(0)
-	self:StartBar(math.random(1,3))
+	self:StartBar()
 end
 
 -- ---------------------
@@ -297,25 +290,24 @@ end
 -- ---------------------
 -- Events
 -- ---------------------
+function mod:ACTIVE_TALENT_GROUP_CHANGED()
+	self:ScanTalent()
+end
 
 function mod:PLAYER_ENTERING_WORLD()
 	self:ScanTalent()
 end
 
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, dstName, _, spellId, spellName, _, ...)
-	-- Event wasn't from us or to us, or event isn't one we care about
-	if (srcName ~= playerName and dstName ~= playerName) or spellId ~= 51662 then
+	-- Event wasn't from us
+	if srcName ~= playerName or spellId ~= 63848 then
 		return
 	end
-	
+
 	if eventType == "SPELL_AURA_APPLIED" then
-		stackCount = 1
-		self:StartBar(stackCount)
+		self:StartBar()
 	elseif eventType == "SPELL_AURA_REFRESH" then
-		self:StartBar(stackCount)
-	elseif eventType == "SPELL_AURA_APPLIED_DOSE" then
-		stackCount = select(2, ...)
-		self:StartBar(stackCount)
+		self:StartBar()
 	elseif eventType == "SPELL_AURA_REMOVED" then
 		self.running = false
 		hunParent:Hide()
@@ -526,31 +518,13 @@ do
 				order = 200,
 				inline = true,
 				args = {
-					stackColor1 = {
+					barColor = {
 						type = 'color',
-						name = L["1 stack"],
-						desc = L["Color of the bar with 1 stack."],
+						name = L["Main color"],
+						desc = L["Color of the HfB bar."],
 						get = getcolor, set = setcolor,
 						hasAlpha = true,
 						order = 201,
-						width = 'half',
-					},
-					stackColor2 = {
-						type = 'color',
-						name = L["%d stacks"]:format(2),
-						desc = L["Color of the bar with %d stacks."]:format(2),
-						get = getcolor, set = setcolor,
-						hasAlpha = true,
-						order = 202,
-						width = 'half',
-					},
-					stackColor3 = {
-						type = 'color',
-						name = L["%d stacks"]:format(3),
-						desc = L["Color of the bar with %d stacks."]:format(3),
-						get = getcolor, set = setcolor,
-						hasAlpha = true,
-						order = 203,
 						width = 'half',
 					},
 					blank1 = {
