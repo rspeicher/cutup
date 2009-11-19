@@ -80,6 +80,8 @@ function mod:OnEnable()
 	playerName = UnitName('player')
 	
 	self:CreateFrame()
+    self:SetAnchors(true)
+    self:UpdateDisplay()
 end
 
 function mod:OnDisable()
