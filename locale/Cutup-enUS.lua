@@ -59,11 +59,8 @@ L["Y Position"] = true
 	L["Text font"] = true
 	
 	-- Module: Glutton
-	L["Stack Colors"] = true
-	L["1 stack"] = true
-	L["Color of the bar with 1 stack."] = true
-	L["%d stacks"] = true
-	L["Color of the bar with %d stacks."] = true
+	L["Main color"] = true
+	L["Color of the HfB bar."] = true
 
 	-- Module: LightFingers
 	
