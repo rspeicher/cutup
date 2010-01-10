@@ -3,8 +3,11 @@ if (select(2, UnitClass("player"))) ~= "ROGUE" then return end
 --[[
 Name: Cutup_Glutton
 Revision: $Revision$
-Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com)
+Author(s): ColdDoT (kevin@colddot.nl), tsigo (tsigo@eqdkp.com), Neloter (op157@hotmail.com)
 Description: A module for Cutup that times Hunger for Blood.
+Inspired by: Cutup_Julienne
+
+I want to suck you blood!
 ]]
 
 local mod = Cutup:NewModule("Glutton", nil, "AceEvent-3.0", "AceConsole-3.0")
@@ -94,10 +97,11 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
-	self:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self:RegisterEvent("CHARACTER_POINTS_CHANGED", 'ScanTalent')
 	self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	self:RegisterEvent("PLAYER_ALIVE")
 	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	self:RegisterEvent("CHARACTER_POINTS_CHANGED")--, 'ScanTalent')
+	self:RegisterEvent("PLAYER_TALENT_UPDATE")
 	
 	playerName = UnitName('player')
 	
@@ -139,7 +143,7 @@ end
 
 function mod:ApplySettings()
 	if not self:IsEnabled() then return end
-	
+
 	if hunParent then
 		local db = db.profile.glutton
 		local back = {}
@@ -277,7 +281,7 @@ end
 
 function mod:ScanTalent()
 	local talent, _, _, _, rank = GetTalentInfo(1, 27)
-	
+
 	if rank == 0 then
 		self:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	else
@@ -290,11 +294,22 @@ end
 -- ---------------------
 -- Events
 -- ---------------------
+
 function mod:ACTIVE_TALENT_GROUP_CHANGED()
 	self:ScanTalent()
 end
 
-function mod:PLAYER_ENTERING_WORLD()
+function mod:PLAYER_TALENT_UPDATE()
+	self:ScanTalent()
+end
+
+function mod:CHARACTER_POINTS_CHANGED()
+	self:ScanTalent()
+end
+
+function mod:PLAYER_ALIVE()
+	-- player logged in or alive after logging in talents ready to be read
+	self:UnregisterEvent("PLAYER_ALIVE")
 	self:ScanTalent()
 end
 
@@ -304,11 +319,14 @@ function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, _, 
 		return
 	end
 
-	if eventType == "SPELL_AURA_APPLIED" then
-		self:StartBar()
-	elseif eventType == "SPELL_AURA_REFRESH" then
-		self:StartBar()
-	elseif eventType == "SPELL_AURA_REMOVED" then
+	if eventType == "SPELL_AURA_APPLIED" or eventType == "SPELL_AURA_REFRESH" then
+		self.startTime = GetTime()
+		self.endTime = self.startTime + maxTime
+		self.running = true
+		hunBar:SetValue(1)
+		hunParent:Show() 
+	end
+	if eventType == "SPELL_AURA_REMOVED" then
 		self.running = false
 		hunParent:Hide()
 	end
