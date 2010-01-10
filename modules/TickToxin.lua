@@ -225,8 +225,8 @@ function mod:ScanAura(spellId, spellName)
 	local color
 	
 	for i = 1, MAX_TARGET_DEBUFFS do
-		name, rank, icon, count, debuffType, duration, expireTime, isMine = UnitAura('target', i, 'HARMFUL|PLAYER')
-		if name == spellName and isMine then
+		name, rank, icon, count, debuffType, duration, expireTime, unit = UnitAura('target', i, 'HARMFUL|PLAYER')
+		if name == spellName and unit and UnitIsUnit(unit, "player") then
 			local shortName = name:gsub(" .I*V*I*X*$", "")
 			
 			if self.db.profile.ticktoxin.poisons[shortName].track then
