@@ -22,7 +22,9 @@ L["Spam"] = true
 L["Spam_Desc"] = "Block repeated Rogue-specific error messages"
 L["TickToxin"] = true
 L["TickToxin_Desc"] = "Poison application timer"
-
+L["Poisoner"] = true
+L["Poisoner_Desc"] = "Envenom timer"
+	
 -- Shared
 L["Enable"] = true
 L["Lock"] = true
@@ -39,6 +41,9 @@ L["Text"] = true
 L["X Position"] = true
 L["Y Position"] = true
 
+	-- Module: Poisoner
+
+	
 	-- Module: Julienne/Bleeder
 	L["Toggle bar lock"] = true
 	L["Background color"] = true

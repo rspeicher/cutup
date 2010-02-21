@@ -6,4 +6,5 @@
 	<Script file="LightFingers.lua"/>
 	<Script file="Spam.lua"/>
 	<Script file="TickToxin.lua"/>
+	<Script file="Poisoner.lua"/>
 </Ui>
