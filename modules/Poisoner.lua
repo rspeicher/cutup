@@ -103,10 +103,15 @@ function mod:OnInitialize()
 end
 
 function mod:OnEnable()
-	-- Slice and Dice / Combo Point detection
 	self:RegisterEvent("UNIT_AURA") 
 	self:RegisterEvent("UNIT_COMBO_POINTS")
 	self:RegisterEvent("PLAYER_TARGET_CHANGED")
+	
+	-- When to scan for Master Poisoner
+	self:RegisterEvent("PLAYER_ALIVE")
+	self:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+	self:RegisterEvent("CHARACTER_POINTS_CHANGED")
+	self:RegisterEvent("PLAYER_TALENT_UPDATE")
 	
 	self.locked = locked
 	self.startTime = 0
@@ -190,6 +195,7 @@ function mod:ApplySettings()
 		eBar:SetWidth(db.width)
 		eBar:SetHeight(db.height)
 		eBar:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
+		eBar:GetStatusBarTexture():SetHorizTile(false)
 		eBar:SetMinMaxValues(0, 1)
 		eBar:SetStatusBarColor(unpack(db.mainColor))
 		eBar:Show()
@@ -200,6 +206,7 @@ function mod:ApplySettings()
 		eBar2:SetWidth(db.width)
 		eBar2:SetHeight(db.height)
 		eBar2:SetStatusBarTexture(Media:Fetch('statusbar', db.texture))
+		eBar2:GetStatusBarTexture():SetHorizTile(false)
 		eBar2:SetMinMaxValues(0, 1)
 		eBar2:SetStatusBarColor(unpack(db.potentialColor))
 		if db.potentialShow then
@@ -325,8 +332,46 @@ function mod:CurrentDuration(combos)
 end
 
 -- ---------------------
+-- Bonus
+-- ---------------------
+function mod:ScanTalent()
+	-- If you do not have Master Poisoner you can safely say they are not using Envenom
+	local talent, _, _, _, rank = GetTalentInfo(1, 23)
+
+	if rank == 0 then
+		self:UnregisterEvent("UNIT_AURA") 
+		self:UnregisterEvent("UNIT_COMBO_POINTS")
+		self:UnregisterEvent("PLAYER_TARGET_CHANGED")
+	else
+		self:RegisterEvent("PLAYER_TARGET_CHANGED")
+		self:RegisterEvent("UNIT_AURA") 
+		self:RegisterEvent("UNIT_COMBO_POINTS")
+	end
+	
+	hunRank = rank
+end
+
+-- ---------------------
 -- Events
 -- ---------------------
+function mod:ACTIVE_TALENT_GROUP_CHANGED()
+	self:ScanTalent()
+end
+
+function mod:PLAYER_TALENT_UPDATE()
+	self:ScanTalent()
+end
+
+function mod:CHARACTER_POINTS_CHANGED()
+	self:ScanTalent()
+end
+
+function mod:PLAYER_ALIVE()
+	-- player logged in or alive after logging in talents ready to be read
+	self:UnregisterEvent("PLAYER_ALIVE")
+	self:ScanTalent()
+end
+
 function mod:PLAYER_TARGET_CHANGED()
 	local curGUID = UnitGUID("target")
 	
