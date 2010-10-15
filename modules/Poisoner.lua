@@ -53,7 +53,7 @@ local UnitGUID = _G.UnitGUID
 -- Settings/infos
 local maxTime, combos = 6, 0 -- max duration for 5 combo poins is 1 + (1*5) = 6
 local resetValues = true -- Terrible hack to fix a display issue
-local spellInfo = GetSpellInfo(57993) -- Envenom (Rank 4)
+local spellInfo = GetSpellInfo(32645) -- Envenom
 local lastGUID = nil
 local minDuration = 2 -- at 1 combo point
 
@@ -336,7 +336,7 @@ end
 -- ---------------------
 function mod:ScanTalent()
 	-- If you do not have Master Poisoner you can safely say they are not using Envenom
-	local talent, _, _, _, rank = GetTalentInfo(1, 23)
+	local talent, _, _, _, rank = GetTalentInfo(1, 15) -- Scan for Master Poisoner
 
 	if rank == 0 then
 		self:UnregisterEvent("UNIT_AURA") 

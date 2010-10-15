@@ -59,7 +59,7 @@ local improvedRank, improved = nil, { 0, 0.25, 0.50 } -- Improved Slice and Dice
 local netherbladeBonus = nil -- True if we have the two-piece Netherblade set bonus
 local netherbladeSet = { 29044, 29045, 29046, 29047, 29048 }
 local resetValues = true -- Terrible hack to fix a display issue
-local spellInfo = GetSpellInfo(6774) -- Slice and Dice (Rank 2)
+local spellInfo = GetSpellInfo(5171) -- Slice and Dice
 local lastGUID = nil
 local minDuration = 9 -- SnD at 1 combo point
 

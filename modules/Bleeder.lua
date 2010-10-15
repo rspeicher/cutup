@@ -319,10 +319,10 @@ end
 -- ---------------------
 
 function mod:ScanGlyph()
-	for i = 1, 6 do
-		local _, _, glyphSpell = GetGlyphSocketInfo(i)
-		
-		if glyphSpell == 56801 then
+	-- TODO for i = 1, NUM_GLYPH_SLOTS do
+	for i = 1, 9 do
+		local _, _, _, spellId = GetGlyphSocketInfo(i)
+		if spellId == 56801 then
 			minTime, maxTime = 12, 20
 			return
 		end
@@ -393,7 +393,7 @@ end
 
 function mod:COMBAT_LOG_EVENT_UNFILTERED(event, _, eventType, _, srcName, _, destGUID, dstName, _, spellId, spellName, _, ...)
 	-- Event wasn't from us or to us, or event isn't one we care about
-	if srcName == playerName and spellId == 48672 then 
+	if srcName == playerName and spellId == 1943 then 
 		if eventType == "SPELL_CAST_SUCCESS" then
 			useableCombo = rupCombos
 		end
